@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+<helmet><style>
+  @media (max-width:1000px){[data-el="stat-grid"]{grid-template-columns:repeat(2,1fr) !important}[data-el="chart-row"],[data-el="bottom-row"]{grid-template-columns:1fr !important}}
+</style></helmet>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+  <div data-el="stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+    <sc-for list="{{ skelCards }}" as="s" hint-placeholder-count="4"><div class="skel" style="height:96px;border-radius:14px"></div></sc-for>
+  </div>
+  <div class="skel" style="height:280px;border-radius:14px"></div>
+</sc-if>
+
+<sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+<div>
+  <div data-el="stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:18px">
+      <div style="font-size:12px;color:#8a8f98;font-weight:600">Today's Appointments</div>
+      <div style="font-size:26px;font-weight:800;margin-top:6px">{{ stats.todayAppts }}</div>
+      <div style="font-size:11.5px;color:#16a34a;font-weight:600;margin-top:4px">+3 vs yesterday</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:18px">
+      <div style="font-size:12px;color:#8a8f98;font-weight:600">Revenue (This Month)</div>
+      <div style="font-size:26px;font-weight:800;margin-top:6px">{{ stats.revenue }}</div>
+      <div style="font-size:11.5px;color:#16a34a;font-weight:600;margin-top:4px">+12.4% MoM</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:18px">
+      <div style="font-size:12px;color:#8a8f98;font-weight:600">Jobs In Progress</div>
+      <div style="font-size:26px;font-weight:800;margin-top:6px">{{ stats.jobsProgress }}</div>
+      <div style="font-size:11.5px;color:#8a8f98;font-weight:600;margin-top:4px">{{ stats.jobsQueue }} in queue</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:18px">
+      <div style="font-size:12px;color:#8a8f98;font-weight:600">Low Stock Items</div>
+      <div style="font-size:26px;font-weight:800;margin-top:6px;color:#d81f2a">{{ stats.lowStock }}</div>
+      <div style="font-size:11.5px;color:#8a8f98;font-weight:600;margin-top:4px">Needs reorder</div>
+    </div>
+  </div>
+
+  <div data-el="chart-row" style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px">
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700">Revenue &mdash; Last 7 Days</div>
+        <div style="font-size:12px;color:#8a8f98">LKR</div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:14px;height:180px;padding:0 6px">
+        <sc-for list="{{ revenueBars }}" as="b" hint-placeholder-count="7">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end">
+            <div style="font-size:10.5px;color:#8a8f98;font-weight:600">{{ b.label2 }}</div>
+            <div style="width:100%;max-width:34px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#e0212b,#a8161f);height:{{ b.heightPct }}%"></div>
+            <div style="font-size:10.5px;color:#6b7280;font-weight:600">{{ b.day }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:16px">Job Status Breakdown</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ jobStatusBars }}" as="j" hint-placeholder-count="4">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span style="font-weight:600;color:#374151">{{ j.label }}</span><span style="color:#8a8f98">{{ j.count }}</span></div>
+            <div style="height:8px;border-radius:6px;background:#f1f1f3;overflow:hidden"><div style="height:100%;width:{{ j.pct }}%;background:{{ j.color }};border-radius:6px"></div></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid #f1f1f3;display:flex;justify-content:space-between">
+        <div><div style="font-size:11px;color:#8a8f98">Repeat customers</div><div style="font-size:16px;font-weight:800">{{ stats.repeatPct }}%</div></div>
+        <div><div style="font-size:11px;color:#8a8f98">New customers</div><div style="font-size:16px;font-weight:800">{{ stats.newCust }}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div data-el="bottom-row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:14px">Top Services</div>
+      <sc-for list="{{ topServices }}" as="s" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f5f5f6">
+          <div style="font-size:13px;font-weight:600;color:#374151">{{ s.name }}</div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="font-size:12px;color:#8a8f98">{{ s.count }} jobs</div><div style="font-size:13px;font-weight:700">{{ s.revenue }}</div></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:14px;font-weight:700">Expenses vs Income</div><div style="font-size:12px;color:#8a8f98">This month</div></div>
+      <div style="display:flex;gap:10px;align-items:flex-end;height:120px;margin-bottom:10px">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+          <div style="width:60%;border-radius:8px 8px 0 0;background:#16a34a;height:100%"></div>
+          <div style="font-size:11px;color:#8a8f98;font-weight:600">Income</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+          <div style="width:60%;border-radius:8px 8px 0 0;background:#d81f2a;height:44%"></div>
+          <div style="font-size:11px;color:#8a8f98;font-weight:600">Expenses</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700"><span>{{ stats.income }}</span><span>{{ stats.expenses }}</span></div>
+    </div>
+  </div>
+</div>
+</sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { loading: true };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 550); }
+
+  renderVals() {
+    const revenue = [
+      { day: 'Mon', v: 42 }, { day: 'Tue', v: 58 }, { day: 'Wed', v: 51 },
+      { day: 'Thu', v: 70 }, { day: 'Fri', v: 88 }, { day: 'Sat', v: 96 }, { day: 'Sun', v: 34 }
+    ];
+    const max = Math.max(...revenue.map(r => r.v));
+    const revenueBars = revenue.map(r => ({ day: r.day, label2: (r.v * 1200).toLocaleString(), heightPct: Math.round((r.v / max) * 100) }));
+
+    return {
+      loading: this.state.loading,
+      skelCards: [1, 2, 3, 4],
+      stats: {
+        todayAppts: 14, revenue: 'LKR 1,842,000', jobsProgress: 9, jobsQueue: 5,
+        lowStock: 6, repeatPct: 64, newCust: 18, income: 'LKR 1,842,000', expenses: 'LKR 812,400'
+      },
+      revenueBars,
+      jobStatusBars: [
+        { label: 'Pending', count: 12, pct: 40, color: '#f59e0b' },
+        { label: 'In Progress', count: 9, pct: 30, color: '#7c3aed' },
+        { label: 'Quality Check', count: 4, pct: 13, color: '#2563eb' },
+        { label: 'Completed', count: 21, pct: 70, color: '#16a34a' }
+      ],
+      topServices: [
+        { name: 'Full Service', count: 32, revenue: 'LKR 480,000' },
+        { name: 'Oil Change', count: 51, revenue: 'LKR 255,000' },
+        { name: 'Brake Service', count: 22, revenue: 'LKR 198,000' },
+        { name: 'Wheel Alignment & Balancing', count: 28, revenue: 'LKR 140,000' },
+        { name: 'AC Repair', count: 14, revenue: 'LKR 126,000' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

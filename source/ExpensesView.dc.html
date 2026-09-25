@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+    <input value="{{ expQuery }}" onChange="{{ setExpQuery }}" placeholder="Search expenses..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:280px" />
+    <button onClick="{{ openNewExpense }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add Expense</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:11.5px;color:#8a8f98;font-weight:600;margin-bottom:6px">Total</div><div style="font-size:20px;font-weight:800">{{ totalLabel }}</div></div>
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:11.5px;color:#8a8f98;font-weight:600;margin-bottom:6px">Entries</div><div style="font-size:20px;font-weight:800">{{ countLabel }}</div></div>
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:11.5px;color:#8a8f98;font-weight:600;margin-bottom:6px">Top Category</div><div style="font-size:20px;font-weight:800">{{ topCategoryLabel }}</div></div>
+  </div>
+
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div style="background:#fff;border:1px solid #ececef;border-radius:14px;overflow:hidden">
+      <sc-for list="{{ skel }}" as="s" hint-placeholder-count="5"><div style="padding:16px;border-bottom:1px solid #f5f5f6"><div class="skel" style="height:16px;border-radius:6px;width:90%"></div></div></sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+  <div style="background:#fff;border:1px solid #ececef;border-radius:14px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr 0.9fr 1fr 0.8fr 1fr 0.6fr;padding:12px 16px;font-size:11.5px;font-weight:700;color:#8a8f98;text-transform:uppercase;letter-spacing:0.03em;border-bottom:1px solid #f1f1f3">
+      <div>Type</div><div>Date</div><div>Note</div><div>Amount</div><div>Staff</div><div>Actions</div>
+    </div>
+    <sc-for list="{{ expItems }}" as="e" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:1fr 0.9fr 1fr 0.8fr 1fr 0.6fr;padding:12px 16px;font-size:13px;align-items:center;border-bottom:1px solid #f5f5f6">
+        <div style="font-weight:700">{{ e.type }}</div>
+        <div style="color:#6b7280;font-size:12.5px">{{ e.date }}</div>
+        <div style="color:#6b7280;font-size:12.5px">{{ e.note }}</div>
+        <div style="font-weight:700">{{ e.amountLabel }}</div>
+        <div style="color:#4b5563;font-size:12.5px">{{ e.staffLabel }}</div>
+        <div><span onClick="{{ e.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        </span></div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ expEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px;text-align:center;color:#8a8f98;font-size:13px">No expenses recorded.</div></sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ expConfirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">Delete expense?</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">This action cannot be undone.</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelDeleteExpense }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmDeleteExpense }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ expenseModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box;max-height:88vh;overflow-y:auto">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">Add Expense</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="position:relative">
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Expense type</label>
+            <input value="{{ expFormType }}" onChange="{{ setExpFormType }}" onFocus="{{ openTypeDropdown }}" placeholder="Type or select an expense type" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <sc-if value="{{ typeDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                <sc-for list="{{ typeOptions }}" as="t" hint-placeholder-count="4"><div onClick="{{ t.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ t.label }}</div></sc-for>
+                <sc-if value="{{ typeShowAdd }}" hint-placeholder-val="{{ false }}"><div onClick="{{ onAddTypeClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ expFormType }}" as new expense type</div></sc-if>
+              </div>
+            </sc-if>
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Date</label>
+            <input value="{{ expFormDate }}" onChange="{{ setExpFormDate }}" type="date" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Amount (LKR)</label>
+            <input value="{{ expFormAmount }}" onChange="{{ setExpFormAmount }}" type="number" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Note (optional)</label>
+            <input value="{{ expFormNote }}" onChange="{{ setExpFormNote }}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Attach staff member (optional)</label>
+            <select value="{{ expFormStaff }}" onChange="{{ setExpFormStaff }}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;background:#fff">
+              <option value="">None</option>
+              <sc-for list="{{ staffOptions }}" as="st" hint-placeholder-count="4"><option value="{{ st.value }}">{{ st.label }}</option></sc-for>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeExpenseModal }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveExpense }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save Expense</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STAFF_NAMES = ['R. Fonseka', 'S. Herath', 'P. Kumara', 'J. Silva', 'A. Nimal', 'D. Fernando'];
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+const EXPENSES = [
+  { id: 0, type: 'Electricity', date: '2026-09-05', note: 'Electricity bill - September', amount: 18500, staff: 'D. Fernando' },
+  { id: 1, type: 'Rent', date: '2026-09-01', note: 'Workshop rent - September', amount: 65000, staff: '' },
+  { id: 2, type: 'Fuel', date: '2026-09-18', note: 'Service van fuel', amount: 2200, staff: 'J. Silva' },
+  { id: 3, type: 'Staff Salaries', date: '2026-09-25', note: 'September payroll', amount: 145000, staff: '' },
+  { id: 4, type: 'Machine Repairs', date: '2026-09-12', note: 'Compressor repair', amount: 12000, staff: 'P. Kumara' }
+];
+function moneyE(n) { return 'LKR ' + (n || 0).toLocaleString(); }
+function fmtDate(d) { if (!d) return ''; const dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
+
+class Component extends DCLogic {
+  state = {
+    loading: true, expAll: EXPENSES, expQuery: '',
+    expenseModalOpen: false, expFormType: '', expFormDate: '', expFormAmount: '', expFormNote: '', expFormStaff: '',
+    typeDropdownOpen: false, typeMaster: ['Electricity', 'Water Bill', 'Machine Repairs', 'Staff Salaries', 'Fuel', 'Rent', 'Cleaning Supplies', 'Internet & Phone'],
+    expConfirmOpen: false, expConfirmId: null, nextExpId: 100
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setExpQuery = (e) => this.setState({ expQuery: e.target.value });
+  openNewExpense = () => this.setState({ expenseModalOpen: true, expFormType: '', expFormDate: todayStr(), expFormAmount: '', expFormNote: '', expFormStaff: '', typeDropdownOpen: false });
+  closeExpenseModal = () => this.setState({ expenseModalOpen: false });
+  setExpFormType = (e) => this.setState({ expFormType: e.target.value, typeDropdownOpen: true });
+  openTypeDropdown = () => this.setState({ typeDropdownOpen: true });
+  selectType = (t) => this.setState({ expFormType: t, typeDropdownOpen: false });
+  addNewType = () => {
+    const t = this.state.expFormType.trim();
+    if (!t) return;
+    if (!this.state.typeMaster.includes(t)) this.setState({ typeMaster: [...this.state.typeMaster, t] });
+    this.setState({ typeDropdownOpen: false });
+  };
+  setExpFormDate = (e) => this.setState({ expFormDate: e.target.value });
+  setExpFormAmount = (e) => this.setState({ expFormAmount: e.target.value });
+  setExpFormNote = (e) => this.setState({ expFormNote: e.target.value });
+  setExpFormStaff = (e) => this.setState({ expFormStaff: e.target.value });
+  saveExpense = () => {
+    if (!this.state.expFormType.trim() || !this.state.expFormAmount) return;
+    const item = { id: this.state.nextExpId, type: this.state.expFormType, date: this.state.expFormDate || todayStr(), amount: parseFloat(this.state.expFormAmount) || 0, note: this.state.expFormNote, staff: this.state.expFormStaff };
+    this.setState({ expAll: [item, ...this.state.expAll], expenseModalOpen: false, nextExpId: this.state.nextExpId + 1 });
+  };
+  deleteExpense = (id) => this.setState({ expConfirmOpen: true, expConfirmId: id });
+  cancelDeleteExpense = () => this.setState({ expConfirmOpen: false, expConfirmId: null });
+  confirmDeleteExpense = () => this.setState({ expAll: this.state.expAll.filter(e => e.id !== this.state.expConfirmId), expConfirmOpen: false, expConfirmId: null });
+
+  renderVals() {
+    const staffOptions = STAFF_NAMES.map(n => ({ value: n, label: n }));
+    const expItems = this.state.expAll
+      .filter(e => e.type.toLowerCase().includes(this.state.expQuery.toLowerCase()) || (e.note || '').toLowerCase().includes(this.state.expQuery.toLowerCase()))
+      .map(e => ({ ...e, date: fmtDate(e.date), amountLabel: moneyE(e.amount), staffLabel: e.staff || '\u2014', onDelete: () => this.deleteExpense(e.id) }));
+    const total = this.state.expAll.reduce((s, e) => s + e.amount, 0);
+    const byType = {};
+    this.state.expAll.forEach(e => { byType[e.type] = (byType[e.type] || 0) + e.amount; });
+    const topType = Object.keys(byType).sort((a, b) => byType[b] - byType[a])[0] || '\u2014';
+
+    const typeMatches = this.state.typeMaster.filter(t => t.toLowerCase().includes(this.state.expFormType.toLowerCase()));
+    const typeExact = this.state.typeMaster.some(t => t.toLowerCase() === this.state.expFormType.trim().toLowerCase());
+
+    return {
+      loading: this.state.loading, skel: [1, 2, 3, 4, 5],
+      totalLabel: moneyE(total), countLabel: String(expItems.length), topCategoryLabel: topType,
+      expItems, expEmpty: expItems.length === 0, expQuery: this.state.expQuery, setExpQuery: this.setExpQuery,
+      openNewExpense: this.openNewExpense, expenseModalOpen: this.state.expenseModalOpen, closeExpenseModal: this.closeExpenseModal, saveExpense: this.saveExpense,
+      expFormType: this.state.expFormType, setExpFormType: this.setExpFormType, openTypeDropdown: this.openTypeDropdown,
+      typeDropdownOpen: this.state.typeDropdownOpen, typeOptions: typeMatches.map(t => ({ label: t, onClick: () => this.selectType(t) })),
+      typeShowAdd: this.state.expFormType.trim().length > 0 && !typeExact, onAddTypeClick: this.addNewType,
+      expFormDate: this.state.expFormDate, setExpFormDate: this.setExpFormDate,
+      expFormAmount: this.state.expFormAmount, setExpFormAmount: this.setExpFormAmount,
+      expFormNote: this.state.expFormNote, setExpFormNote: this.setExpFormNote,
+      expFormStaff: this.state.expFormStaff, setExpFormStaff: this.setExpFormStaff, staffOptions,
+      expConfirmOpen: this.state.expConfirmOpen, cancelDeleteExpense: this.cancelDeleteExpense, confirmDeleteExpense: this.confirmDeleteExpense
+    };
+  }
+}
+</script>
+</body>
+</html>

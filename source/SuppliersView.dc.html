@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:700px){[data-el="supplier-grid"]{grid-template-columns:1fr !important}}
+  </style></helmet>
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+      <sc-for list="{{ skel }}" as="s" hint-placeholder-count="4"><div class="skel" style="height:110px;border-radius:14px"></div></sc-for>
+    </div>
+  </sc-if>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+    <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search suppliers..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:280px" />
+    <button onClick="{{ openNew }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add Supplier</button>
+  </div>
+  <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+  <div data-el="supplier-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+    <sc-for list="{{ items }}" as="s" hint-placeholder-count="4">
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:18px;display:flex;gap:14px">
+        <div style="width:44px;height:44px;border-radius:10px;background:#111114;color:#f2b705;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">{{ s.initial }}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:700;line-height:1.35;overflow-wrap:anywhere">{{ s.name }}</div>
+              <div style="font-size:12px;color:#8a8f98;line-height:1.3;margin-top:3px;margin-bottom:8px">{{ s.category }}</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-shrink:0">
+              <span onClick="{{ s.onEdit }}" title="Edit" style="cursor:pointer;color:#6b7280">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+              </span>
+              <span onClick="{{ s.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+              </span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#4b5563">
+            <span>{{ s.contact }}</span><span>{{ s.phone }}</span>
+          </div>
+          <sc-if value="{{ s.hasStaff }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:6px;font-size:11.5px;color:#8a8f98">Managed by <strong style="color:#374151">{{ s.staffName }}</strong></div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">Delete supplier?</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">This will remove <strong>{{ confirmName }}</strong>. This action cannot be undone.</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelDelete }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmDelete }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">{{ modalTitle }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input value="{{ formName }}" onChange="{{ setFormName }}" placeholder="Supplier name" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ formCategory }}" onChange="{{ setFormCategory }}" placeholder="Category / items supplied" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ formContact }}" onChange="{{ setFormContact }}" placeholder="Contact person" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ formPhone }}" onChange="{{ setFormPhone }}" placeholder="Phone" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Attach staff member (optional)</label>
+            <select value="{{ formStaff }}" onChange="{{ setFormStaff }}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;background:#fff">
+              <option value="">None</option>
+              <sc-for list="{{ staffOptions }}" as="st" hint-placeholder-count="4"><option value="{{ st.value }}">{{ st.label }}</option></sc-for>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeModal }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveModal }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SUPPLIERS = [
+  { id: 0, name: 'Lanka Auto Parts', category: 'Filters & Brake Parts', contact: 'M. Rajapakse', phone: '077 234 5566', staff: '' },
+  { id: 1, name: 'Colombo Lubricants Ltd', category: 'Lubricants & Fluids', contact: 'S. Wijeratne', phone: '071 998 2211', staff: 'D. Fernando' },
+  { id: 2, name: 'Southern Battery House', category: 'Batteries & Electricals', contact: 'A. Karunaratne', phone: '076 445 8890', staff: '' },
+  { id: 3, name: 'Dikwella Tyre Center', category: 'Tyres & Wheels', contact: 'N. de Silva', phone: '070 112 3344', staff: '' },
+  { id: 4, name: 'Matara Auto Spares', category: 'General Spare Parts', contact: 'D. Gunawardena', phone: '075 667 8823', staff: '' }
+];
+const STAFF_NAMES = ['R. Fonseka', 'S. Herath', 'P. Kumara', 'J. Silva', 'A. Nimal', 'D. Fernando'];
+function moneyE(n) { return 'LKR ' + (n || 0).toLocaleString(); }
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', all: SUPPLIERS, modalOpen: false, editIdx: null,
+    formName: '', formCategory: '', formContact: '', formPhone: '', formStaff: '', confirmOpen: false, confirmId: null
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setQuery = (e) => this.setState({ query: e.target.value });
+
+  openNew = () => this.setState({ modalOpen: true, editIdx: null, formName: '', formCategory: '', formContact: '', formPhone: '', formStaff: '' });
+  openEdit = (id) => {
+    const s = this.state.all.find(x => x.id === id);
+    this.setState({ modalOpen: true, editIdx: id, formName: s.name, formCategory: s.category, formContact: s.contact, formPhone: s.phone, formStaff: s.staff || '' });
+  };
+  closeModal = () => this.setState({ modalOpen: false });
+  setFormName = (e) => this.setState({ formName: e.target.value });
+  setFormCategory = (e) => this.setState({ formCategory: e.target.value });
+  setFormContact = (e) => this.setState({ formContact: e.target.value });
+  setFormPhone = (e) => this.setState({ formPhone: e.target.value });
+  setFormStaff = (e) => this.setState({ formStaff: e.target.value });
+  saveModal = () => {
+    const f = { name: this.state.formName, category: this.state.formCategory, contact: this.state.formContact, phone: this.state.formPhone, staff: this.state.formStaff };
+    if (this.state.editIdx === null) {
+      const nextId = Math.max(-1, ...this.state.all.map(s => s.id)) + 1;
+      this.setState({ all: [...this.state.all, { id: nextId, ...f }], modalOpen: false });
+    } else {
+      this.setState({ all: this.state.all.map(s => s.id === this.state.editIdx ? { ...s, ...f } : s), modalOpen: false });
+    }
+  };
+  deleteSupplier = (id) => this.setState({ confirmOpen: true, confirmId: id });
+  cancelDelete = () => this.setState({ confirmOpen: false, confirmId: null });
+  confirmDelete = () => this.setState({ all: this.state.all.filter(s => s.id !== this.state.confirmId), confirmOpen: false, confirmId: null });
+
+  renderVals() {
+    const staffOptions = STAFF_NAMES.map(n => ({ value: n, label: n }));
+    const items = this.state.all.filter(s => s.name.toLowerCase().includes(this.state.query.toLowerCase()))
+      .map(s => ({ ...s, initial: s.name[0], hasStaff: !!s.staff, staffName: s.staff, onEdit: () => this.openEdit(s.id), onDelete: () => this.deleteSupplier(s.id) }));
+    return {
+      loading: this.state.loading, skel: [1, 2, 3, 4], query: this.state.query, setQuery: this.setQuery, items,
+      openNew: this.openNew, modalOpen: this.state.modalOpen, closeModal: this.closeModal, saveModal: this.saveModal,
+      modalTitle: this.state.editIdx === null ? 'Add Supplier' : 'Edit Supplier',
+      formName: this.state.formName, setFormName: this.setFormName,
+      formCategory: this.state.formCategory, setFormCategory: this.setFormCategory,
+      formContact: this.state.formContact, setFormContact: this.setFormContact,
+      formPhone: this.state.formPhone, setFormPhone: this.setFormPhone,
+      formStaff: this.state.formStaff, setFormStaff: this.setFormStaff, staffOptions,
+      confirmOpen: this.state.confirmOpen, cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+      confirmName: (this.state.all.find(s => s.id === this.state.confirmId) || {}).name || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

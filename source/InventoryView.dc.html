@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:1000px){[data-el="tbl-head"],[data-el="tbl-row"]{min-width:900px}[data-el="tbl-scroll"]{overflow-x:auto}}
+    [data-el="cat-scroll"]{scrollbar-width:none}
+    [data-el="cat-scroll"]::-webkit-scrollbar{display:none;height:0px}
+    @media (max-width:700px){[data-el="toolbar-row"]{flex-direction:column;align-items:stretch !important}[data-el="toolbar-row"] input{width:100% !important}}
+  </style></helmet>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px">
+    <div onClick="{{ scrollCatsLeft }}" style="flex-shrink:0;cursor:pointer;width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#374151" stroke-width="2.2" fill="none"/></svg>
+    </div>
+    <div data-el="cat-scroll" style="flex:1;min-width:0;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth">
+      <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+        <div onClick="{{ c.onClick }}" style="cursor:pointer;flex-shrink:0;white-space:nowrap;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }};min-height:44px;display:flex;align-items:center;transition:background 0.15s">{{ c.label }}</div>
+      </sc-for>
+    </div>
+    <div onClick="{{ scrollCatsRight }}" style="flex-shrink:0;cursor:pointer;width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#374151" stroke-width="2.2" fill="none"/></svg>
+    </div>
+  </div>
+  <div data-el="toolbar-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+    <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search products..." style="padding:11px 14px;border-radius:9px;border:1px solid #e5e7eb;font-size:14px;width:260px;min-height:44px;box-sizing:border-box" />
+    <button onClick="{{ openAddProduct }}" style="padding:11px 18px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:44px">+ Add Product</button>
+  </div>
+
+  <div data-el="tbl-scroll" style="background:#fff;border:1px solid #ececef;border-radius:14px;overflow-x:auto">
+    <div data-el="tbl-head" style="display:grid;grid-template-columns:1.6fr 1fr 0.9fr 1fr 1fr 1.1fr 1.1fr;padding:12px 18px;font-size:11.5px;font-weight:700;color:#8a8f98;text-transform:uppercase;letter-spacing:0.03em;border-bottom:1px solid #f1f1f3">
+      <div>Product</div><div>SKU</div><div>Stock</div><div>Reorder At</div><div>Price</div><div>Supplier</div><div>Actions</div>
+    </div>
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ skelRows }}" as="s" hint-placeholder-count="6"><div style="padding:16px 18px;border-bottom:1px solid #f5f5f6"><div class="skel" style="height:16px;border-radius:6px;width:90%"></div></div></sc-for>
+    </sc-if>
+    <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <sc-for list="{{ items }}" as="p" hint-placeholder-count="8">
+        <div data-el="tbl-row" style="display:grid;grid-template-columns:1.6fr 1fr 0.9fr 1fr 1fr 1.1fr 1.1fr;padding:14px 18px;font-size:13px;align-items:center;border-bottom:1px solid #f5f5f6">
+          <div><div style="font-weight:700;color:#16181d">{{ p.name }}</div><div style="font-size:11.5px;color:#8a8f98">{{ p.category }}</div></div>
+          <div style="color:#4b5563;font-size:12.5px">{{ p.sku }}</div>
+          <div><span style="padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background:{{ p.stockBg }};color:{{ p.stockColor }}">{{ p.stock }}</span></div>
+          <div style="color:#4b5563">{{ p.reorder }}</div>
+          <div><div style="font-weight:700">{{ p.price }}</div><div style="font-size:11px;color:#8a8f98">Cost: {{ p.costPrice }}</div></div>
+          <div style="color:#4b5563;font-size:12.5px">{{ p.supplier }}</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span onClick="{{ p.onRestock }}" title="Update stock / new order" style="cursor:pointer;color:#d81f2a;font-weight:700;font-size:11.5px">Restock</span>
+            <span onClick="{{ p.onEdit }}" title="Edit" style="cursor:pointer;color:#6b7280">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+            <span onClick="{{ p.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px;text-align:center;color:#8a8f98;font-size:13px">No products found.</div></sc-if>
+      <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ true }}"><div style="padding:16px;text-align:center;color:#8a8f98;font-size:12.5px">Loading more...</div></sc-if>
+    </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ restockOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:16px;font-weight:800;margin-bottom:4px">Update Stock</div>
+        <div style="font-size:12.5px;color:#8a8f98;margin-bottom:18px">{{ restockProduct.name }} &middot; Current stock: {{ restockProduct.stockNum }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Quantity received (new order)</label>
+            <input type="number" value="{{ restockQty }}" onChange="{{ setRestockQty }}" placeholder="e.g. 20" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Unit price (LKR)</label>
+            <input type="number" value="{{ restockPrice }}" onChange="{{ setRestockPrice }}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Supplier</label>
+            <input value="{{ restockSupplier }}" onChange="{{ setRestockSupplier }}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeRestock }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveRestock }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save Stock Update</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">Delete product?</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">This will remove <strong>{{ confirmName }}</strong> from inventory. This action cannot be undone.</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelDelete }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmDelete }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ productModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box;max-height:88vh;overflow-y:auto">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">{{ productModalTitle }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+
+          <div style="position:relative">
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Product name</label>
+            <input value="{{ nameSearch }}" onChange="{{ setNameSearch }}" onFocus="{{ openNameDropdown }}" placeholder="Type or select a product name" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <sc-if value="{{ nameDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                <sc-for list="{{ nameOptions }}" as="n" hint-placeholder-count="3"><div onClick="{{ n.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ n.label }}</div></sc-for>
+                <sc-if value="{{ nameShowAdd }}" hint-placeholder-val="{{ false }}"><div onClick="{{ onAddNameClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ nameSearch }}" as new product name</div></sc-if>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="position:relative">
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Category</label>
+            <input value="{{ catSearch }}" onChange="{{ setCatSearch }}" onFocus="{{ openCatDropdown }}" placeholder="Type or select a category" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <sc-if value="{{ catDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                <sc-for list="{{ catOptions }}" as="c" hint-placeholder-count="3"><div onClick="{{ c.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ c.label }}</div></sc-for>
+                <sc-if value="{{ catShowAdd }}" hint-placeholder-val="{{ false }}"><div onClick="{{ onAddCatClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ catSearch }}" as new category</div></sc-if>
+              </div>
+            </sc-if>
+          </div>
+
+          <input value="{{ formSku }}" onChange="{{ setFormSku }}" placeholder="SKU (auto-generated, editable)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <div style="display:flex;gap:8px">
+            <div style="flex:1">
+              <label style="font-size:11.5px;color:#6b7280;font-weight:600">Purchasing price (LKR)</label>
+              <input value="{{ formCostPrice }}" onChange="{{ setFormCostPrice }}" type="number" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            </div>
+            <div style="flex:1">
+              <label style="font-size:11.5px;color:#6b7280;font-weight:600">Selling price (LKR)</label>
+              <input value="{{ formSellPrice }}" onChange="{{ setFormSellPrice }}" type="number" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1">
+              <label style="font-size:11.5px;color:#6b7280;font-weight:600">Stock</label>
+              <input value="{{ formStock }}" onChange="{{ setFormStock }}" type="number" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            </div>
+            <div style="flex:1">
+              <label style="font-size:11.5px;color:#6b7280;font-weight:600">Reorder level</label>
+              <input value="{{ formReorder }}" onChange="{{ setFormReorder }}" type="number" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            </div>
+          </div>
+          <input value="{{ formSupplier }}" onChange="{{ setFormSupplier }}" placeholder="Supplier" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeProductModal }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveProduct }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">{{ productModalSaveLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function money(n) { return 'LKR ' + (n || 0).toLocaleString(); }
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', cat: 'all', visible: 8,
+    restockOpen: false, restockIdx: null, restockQty: '', restockPrice: '', restockSupplier: '',
+    confirmOpen: false, confirmId: null,
+    productModalOpen: false, productModalMode: 'add', editId: null,
+    nameSearch: '', catSearch: '', nameDropdownOpen: false, catDropdownOpen: false,
+    formSku: '', formCostPrice: '', formSellPrice: '', formStock: '', formReorder: '10', formSupplier: '', nextSkuNum: 1000
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setQuery = (e) => this.setState({ query: e.target.value, visible: 8 });
+  setCat = (c) => this.setState({ cat: c, visible: 8 });
+  scrollCatsLeft = () => { const el = document.querySelector('[data-el="cat-scroll"]'); if (el) el.scrollBy({ left: -220, behavior: 'smooth' }); };
+  scrollCatsRight = () => { const el = document.querySelector('[data-el="cat-scroll"]'); if (el) el.scrollBy({ left: 220, behavior: 'smooth' }); };
+
+  openRestock = (id) => {
+    const p = (this.props.items || []).find(x => x.id === id);
+    this.setState({ restockOpen: true, restockIdx: id, restockQty: '', restockPrice: String(p.priceNum), restockSupplier: p.supplier });
+  };
+  closeRestock = () => this.setState({ restockOpen: false });
+  setRestockQty = (e) => this.setState({ restockQty: e.target.value });
+  setRestockPrice = (e) => this.setState({ restockPrice: e.target.value });
+  setRestockSupplier = (e) => this.setState({ restockSupplier: e.target.value });
+  saveRestock = () => {
+    const p = (this.props.items || []).find(x => x.id === this.state.restockIdx);
+    const qty = parseInt(this.state.restockQty, 10) || 0;
+    const price = parseFloat(this.state.restockPrice) || 0;
+    (this.props.onUpdate || function () {})(this.state.restockIdx, { stockNum: (p.stockNum || 0) + qty, priceNum: price || p.priceNum, supplier: this.state.restockSupplier || p.supplier });
+    this.setState({ restockOpen: false });
+  };
+
+  deleteItem = (id) => this.setState({ confirmOpen: true, confirmId: id });
+  cancelDelete = () => this.setState({ confirmOpen: false, confirmId: null });
+  confirmDelete = () => { (this.props.onDelete || function () {})(this.state.confirmId); this.setState({ confirmOpen: false, confirmId: null }); };
+
+  openAddProduct = () => this.setState({
+    productModalOpen: true, productModalMode: 'add', editId: null,
+    nameSearch: '', catSearch: '', formSku: 'PRD-' + this.state.nextSkuNum,
+    formCostPrice: '', formSellPrice: '', formStock: '', formReorder: '10', formSupplier: ''
+  });
+  openEditProduct = (item) => this.setState({
+    productModalOpen: true, productModalMode: 'edit', editId: item.id,
+    nameSearch: item.name, catSearch: item.category, formSku: item.sku,
+    formCostPrice: String(item.costPriceNum || 0), formSellPrice: String(item.priceNum), formStock: String(item.stockNum), formReorder: String(item.reorder), formSupplier: item.supplier
+  });
+  closeProductModal = () => this.setState({ productModalOpen: false });
+
+  setNameSearch = (e) => this.setState({ nameSearch: e.target.value, nameDropdownOpen: true });
+  openNameDropdown = () => this.setState({ nameDropdownOpen: true, catDropdownOpen: false });
+  selectName = (n) => this.setState({ nameSearch: n, nameDropdownOpen: false });
+  addNewName = () => {
+    const n = this.state.nameSearch.trim();
+    if (!n) return;
+    (this.props.onAddName || function () {})(n);
+    this.setState({ nameSearch: n, nameDropdownOpen: false });
+  };
+  setCatSearch = (e) => this.setState({ catSearch: e.target.value, catDropdownOpen: true });
+  openCatDropdown = () => this.setState({ catDropdownOpen: true, nameDropdownOpen: false });
+  selectCat = (c) => this.setState({ catSearch: c, catDropdownOpen: false });
+  addNewCat = () => {
+    const c = this.state.catSearch.trim();
+    if (!c) return;
+    (this.props.onAddCategory || function () {})(c);
+    this.setState({ catSearch: c, catDropdownOpen: false });
+  };
+
+  setFormSku = (e) => this.setState({ formSku: e.target.value });
+  setFormCostPrice = (e) => this.setState({ formCostPrice: e.target.value });
+  setFormSellPrice = (e) => this.setState({ formSellPrice: e.target.value });
+  setFormStock = (e) => this.setState({ formStock: e.target.value });
+  setFormReorder = (e) => this.setState({ formReorder: e.target.value });
+  setFormSupplier = (e) => this.setState({ formSupplier: e.target.value });
+
+  saveProduct = () => {
+    if (!this.state.nameSearch.trim() || !this.state.catSearch.trim()) return;
+    const payload = {
+      name: this.state.nameSearch, category: this.state.catSearch, sku: this.state.formSku.trim() || ('PRD-' + this.state.nextSkuNum),
+      costPriceNum: parseFloat(this.state.formCostPrice) || 0, priceNum: parseFloat(this.state.formSellPrice) || 0,
+      stockNum: parseInt(this.state.formStock, 10) || 0, reorder: parseInt(this.state.formReorder, 10) || 10,
+      supplier: this.state.formSupplier || 'Unassigned'
+    };
+    if (this.state.productModalMode === 'add') {
+      (this.props.onAdd || function () {})(payload);
+      this.setState({ productModalOpen: false, nextSkuNum: this.state.nextSkuNum + 1 });
+    } else {
+      (this.props.onUpdate || function () {})(this.state.editId, payload);
+      this.setState({ productModalOpen: false });
+    }
+  };
+
+  renderVals() {
+    const all = this.props.items || [];
+    const masterCats = this.props.categories || [];
+    const filtered = all.filter(p =>
+      (this.state.cat === 'all' || p.category === this.state.cat) &&
+      p.name.toLowerCase().includes(this.state.query.toLowerCase())
+    );
+    const items = filtered.slice(0, this.state.visible).map(p => {
+      const low = p.stockNum <= p.reorder;
+      return {
+        ...p, stock: low ? p.stockNum + ' (Low)' : p.stockNum,
+        stockBg: low ? '#fee2e2' : '#dcfce7', stockColor: low ? '#b91c1c' : '#15803d',
+        price: money(p.priceNum), costPrice: money(p.costPriceNum),
+        onRestock: () => this.openRestock(p.id), onEdit: () => this.openEditProduct(p), onDelete: () => this.deleteItem(p.id)
+      };
+    });
+    const restockProduct = all.find(p => p.id === this.state.restockIdx) || { name: '', stockNum: 0 };
+
+    const nameMaster = this.props.productNames || [];
+    const nameMatches = nameMaster.filter(n => n.toLowerCase().includes(this.state.nameSearch.toLowerCase()));
+    const nameExact = nameMaster.some(n => n.toLowerCase() === this.state.nameSearch.trim().toLowerCase());
+    const catMatches = masterCats.filter(c => c.toLowerCase().includes(this.state.catSearch.toLowerCase()));
+    const catExact = masterCats.some(c => c.toLowerCase() === this.state.catSearch.trim().toLowerCase());
+
+    return {
+      loading: this.state.loading, skelRows: [1, 2, 3, 4, 5, 6], query: this.state.query, setQuery: this.setQuery,
+      scrollCatsLeft: this.scrollCatsLeft, scrollCatsRight: this.scrollCatsRight,
+      cats: ['all', ...masterCats].map(c => {
+        const active = this.state.cat === c;
+        return { label: c === 'all' ? 'All' : c, bg: active ? '#111114' : '#fff', color: active ? '#fff' : '#374151', border: active ? '#111114' : '#e5e7eb', onClick: () => this.setCat(c) };
+      }),
+      items, isEmpty: items.length === 0, hasMore: items.length < filtered.length,
+      restockOpen: this.state.restockOpen, restockProduct, closeRestock: this.closeRestock, saveRestock: this.saveRestock,
+      restockQty: this.state.restockQty, setRestockQty: this.setRestockQty,
+      restockPrice: this.state.restockPrice, setRestockPrice: this.setRestockPrice,
+      restockSupplier: this.state.restockSupplier, setRestockSupplier: this.setRestockSupplier,
+      confirmOpen: this.state.confirmOpen, cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+      confirmName: (all.find(p => p.id === this.state.confirmId) || {}).name || '',
+
+      productModalOpen: this.state.productModalOpen, openAddProduct: this.openAddProduct, closeProductModal: this.closeProductModal, saveProduct: this.saveProduct,
+      productModalTitle: this.state.productModalMode === 'add' ? 'Add Product' : 'Edit Product',
+      productModalSaveLabel: this.state.productModalMode === 'add' ? 'Add Product' : 'Save Changes',
+      nameSearch: this.state.nameSearch, setNameSearch: this.setNameSearch, openNameDropdown: this.openNameDropdown,
+      nameDropdownOpen: this.state.nameDropdownOpen, nameOptions: nameMatches.map(n => ({ label: n, onClick: () => this.selectName(n) })),
+      nameShowAdd: this.state.nameSearch.trim().length > 0 && !nameExact, onAddNameClick: this.addNewName,
+      catSearch: this.state.catSearch, setCatSearch: this.setCatSearch, openCatDropdown: this.openCatDropdown,
+      catDropdownOpen: this.state.catDropdownOpen, catOptions: catMatches.map(c => ({ label: c, onClick: () => this.selectCat(c) })),
+      catShowAdd: this.state.catSearch.trim().length > 0 && !catExact, onAddCatClick: this.addNewCat,
+      formSku: this.state.formSku, setFormSku: this.setFormSku,
+      formCostPrice: this.state.formCostPrice, setFormCostPrice: this.setFormCostPrice,
+      formSellPrice: this.state.formSellPrice, setFormSellPrice: this.setFormSellPrice,
+      formStock: this.state.formStock, setFormStock: this.setFormStock,
+      formReorder: this.state.formReorder, setFormReorder: this.setFormReorder,
+      formSupplier: this.state.formSupplier, setFormSupplier: this.setFormSupplier
+    };
+  }
+}
+</script>
+</body>
+</html>

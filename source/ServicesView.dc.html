@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:900px){[data-el="svc-grid"]{column-count:1 !important}}
+  </style></helmet>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;flex-wrap:wrap">
+    <div style="font-size:13px;color:#6b7280">Manage main service types and the individual services/prices under each.</div>
+    <div style="position:relative">
+      <input value="{{ newCatName }}" onChange="{{ setNewCatName }}" placeholder="New main service type..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:220px" />
+      <sc-if value="{{ showAddCategoryBtn }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ addCategory }}" style="position:absolute;right:4px;top:4px;bottom:4px;padding:0 12px;border-radius:7px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:12px;cursor:pointer">+ Add</button>
+      </sc-if>
+    </div>
+  </div>
+
+  <div data-el="svc-grid" style="column-count:2;column-gap:16px">
+    <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="4">
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:18px;break-inside:avoid;margin-bottom:16px;display:inline-block;width:100%;box-sizing:border-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:{{ cat.headerMargin }}">
+          <div onClick="{{ cat.onToggleExpand }}" style="cursor:pointer;display:flex;align-items:center;gap:8px">
+            <span style="color:#9ca0a8;font-size:11px">{{ cat.expandArrow }}</span>
+            <div style="font-size:14.5px;font-weight:800">{{ cat.name }}</div>
+            <span style="font-size:11.5px;color:#8a8f98;background:#f1f1f3;border-radius:999px;padding:2px 8px">{{ cat.services.length }}</span>
+          </div>
+          <span onClick="{{ cat.onAddService }}" style="cursor:pointer;color:#d81f2a;font-weight:700;font-size:12px">+ Add Service</span>
+        </div>
+        <sc-if value="{{ cat.expanded }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ cat.services }}" as="s" hint-placeholder-count="2">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f6">
+              <div style="min-width:0">
+                <div style="font-size:13px;font-weight:600;color:#16181d">{{ s.name }}</div>
+                <div style="font-size:11px;color:#9ca0a8;margin-top:1px">{{ s.sku }}</div>
+                <sc-if value="{{ s.hasDetails }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#8a8f98;margin-top:2px">{{ s.details }}</div></sc-if>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap">{{ s.priceLabel }}</div>
+                <span onClick="{{ s.onEdit }}" title="Edit" style="cursor:pointer;color:#6b7280">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+                </span>
+                <span onClick="{{ s.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+                </span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ cat.isEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:12px 0;color:#9ca0a8;font-size:12.5px">No services yet.</div></sc-if>
+        </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ serviceModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:16px;font-weight:800;margin-bottom:4px">{{ serviceModalTitle }}</div>
+        <div style="font-size:12px;color:#8a8f98;margin-bottom:16px">{{ serviceModalCategory }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input value="{{ svcName }}" onChange="{{ setSvcName }}" placeholder="Service name" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ svcSku }}" onChange="{{ setSvcSku }}" placeholder="SKU (auto-generated, editable)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ svcPrice }}" onChange="{{ setSvcPrice }}" type="number" placeholder="Price (LKR)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <textarea value="{{ svcDetails }}" onChange="{{ setSvcDetails }}" placeholder="Details (optional)" rows="3" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;resize:vertical;font-family:inherit"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeServiceModal }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveService }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save Service</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">{{ confirmTitle }}</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">{{ confirmMessage }}</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelConfirm }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ runConfirm }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function money(n) { return 'LKR ' + (n || 0).toLocaleString(); }
+
+class Component extends DCLogic {
+  state = {
+    newCatName: '', nextSkuNum: 100, collapsed: {},
+    serviceModalOpen: false, serviceModalMode: 'add', activeCategory: null, activeServiceId: null,
+    svcName: '', svcSku: '', svcPrice: '', svcDetails: '',
+    confirmOpen: false, confirmKind: null, confirmTarget: null
+  };
+  setNewCatName = (e) => this.setState({ newCatName: e.target.value });
+  addCategory = () => {
+    const name = this.state.newCatName.trim();
+    if (!name) return;
+    (this.props.onAddCategory || function () {})(name);
+    this.setState({ newCatName: '' });
+  };
+
+  openAddService = (category, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    this.setState({ serviceModalOpen: true, serviceModalMode: 'add', activeCategory: category, activeServiceId: null, svcName: '', svcSku: 'SVC-' + this.state.nextSkuNum, svcPrice: '', svcDetails: '' });
+  };
+  openEditService = (category, svc) => this.setState({ serviceModalOpen: true, serviceModalMode: 'edit', activeCategory: category, activeServiceId: svc.id, svcName: svc.name, svcSku: svc.sku || ('SVC-' + this.state.nextSkuNum), svcPrice: String(svc.price), svcDetails: svc.details || '' });
+  closeServiceModal = () => this.setState({ serviceModalOpen: false });
+  setSvcName = (e) => this.setState({ svcName: e.target.value });
+  setSvcSku = (e) => this.setState({ svcSku: e.target.value });
+  setSvcPrice = (e) => this.setState({ svcPrice: e.target.value });
+  setSvcDetails = (e) => this.setState({ svcDetails: e.target.value });
+  saveService = () => {
+    if (!this.state.svcName.trim()) return;
+    const payload = { name: this.state.svcName, sku: this.state.svcSku.trim() || ('SVC-' + this.state.nextSkuNum), price: parseFloat(this.state.svcPrice) || 0, details: this.state.svcDetails };
+    if (this.state.serviceModalMode === 'add') {
+      (this.props.onAddService || function () {})(this.state.activeCategory, payload);
+      this.setState({ nextSkuNum: this.state.nextSkuNum + 1 });
+    } else {
+      (this.props.onUpdateService || function () {})(this.state.activeCategory, this.state.activeServiceId, payload);
+    }
+    this.setState({ serviceModalOpen: false });
+  };
+
+  toggleExpand = (category) => this.setState({ collapsed: { ...this.state.collapsed, [category]: !this.state.collapsed[category] } });
+  askDeleteService = (category, svc) => this.setState({ confirmOpen: true, confirmKind: 'service', confirmTarget: { category, id: svc.id, name: svc.name } });
+  cancelConfirm = () => this.setState({ confirmOpen: false });
+  runConfirm = () => {
+    if (this.state.confirmKind === 'service') (this.props.onDeleteService || function () {})(this.state.confirmTarget.category, this.state.confirmTarget.id);
+    this.setState({ confirmOpen: false });
+  };
+
+  renderVals() {
+    const raw = this.props.categories || {};
+    const categories = Object.keys(raw).map(name => {
+      const services = (raw[name] || []).map(s => ({
+        ...s, priceLabel: money(s.price), hasDetails: !!(s.details && s.details.trim()),
+        onEdit: () => this.openEditService(name, s), onDelete: () => this.askDeleteService(name, s)
+      }));
+      const expanded = !this.state.collapsed[name];
+      return {
+        name, services, isEmpty: services.length === 0, onAddService: (e) => this.openAddService(name, e),
+        expanded, expandArrow: expanded ? '\u25BC' : '\u25B6', headerMargin: expanded ? '14px' : '0px',
+        onToggleExpand: () => this.toggleExpand(name)
+      };
+    });
+
+    const confirmTitle = 'Delete service?';
+    const confirmMessage = `This removes "${(this.state.confirmTarget || {}).name}" from the price list.`;
+
+    return {
+      categories,
+      newCatName: this.state.newCatName, setNewCatName: this.setNewCatName, addCategory: this.addCategory,
+      showAddCategoryBtn: this.state.newCatName.trim().length > 0,
+      serviceModalOpen: this.state.serviceModalOpen, closeServiceModal: this.closeServiceModal, saveService: this.saveService,
+      serviceModalTitle: this.state.serviceModalMode === 'add' ? 'Add Service' : 'Edit Service',
+      serviceModalCategory: 'Under: ' + (this.state.activeCategory || ''),
+      svcName: this.state.svcName, setSvcName: this.setSvcName,
+      svcSku: this.state.svcSku, setSvcSku: this.setSvcSku,
+      svcPrice: this.state.svcPrice, setSvcPrice: this.setSvcPrice,
+      svcDetails: this.state.svcDetails, setSvcDetails: this.setSvcDetails,
+      confirmOpen: this.state.confirmOpen, cancelConfirm: this.cancelConfirm, runConfirm: this.runConfirm,
+      confirmTitle, confirmMessage
+    };
+  }
+}
+</script>
+</body>
+</html>

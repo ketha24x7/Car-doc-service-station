@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:900px){[data-el="kanban"]{grid-template-columns:1fr !important}}
+    @media (max-width:640px){[data-el="picker-card"]{width:96vw !important}[data-el="picker-grid"]{grid-template-columns:1fr !important}}
+    [data-el="picker-cat-scroll"]{scrollbar-width:none}
+    [data-el="picker-cat-scroll"]::-webkit-scrollbar{display:none;height:0px}
+  </style></helmet>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;flex-wrap:wrap">
+    <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search job cards..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:260px" />
+    <button onClick="{{ openNew }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ New Job Card</button>
+  </div>
+
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <sc-for list="{{ skel }}" as="s" hint-placeholder-count="3"><div class="skel" style="height:340px;border-radius:14px"></div></sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+  <div data-el="kanban" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <sc-for list="{{ columns }}" as="col" hint-placeholder-count="3">
+      <div style="background:#f7f7f8;border-radius:14px;padding:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="width:8px;height:8px;border-radius:50%;background:{{ col.color }}"></div>
+          <div style="font-size:13px;font-weight:700">{{ col.title }}</div>
+          <div style="margin-left:auto;font-size:11.5px;color:#8a8f98;background:#fff;border-radius:999px;padding:2px 8px">{{ col.items.length }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ col.items }}" as="jc" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #ececef;border-radius:12px;padding:13px">
+              <div style="font-size:11.5px;color:#8a8f98;font-weight:600;margin-bottom:4px">{{ jc.id }}</div>
+              <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">{{ jc.customer }}</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:8px">{{ jc.vehicle }}</div>
+              <div style="font-size:12.5px;color:#374151;font-weight:600;margin-bottom:4px">{{ jc.service }}</div>
+              <sc-if value="{{ jc.showMileage }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#8a8f98;margin-bottom:8px">{{ jc.mileage }} km &middot; Next service: {{ jc.nextService }} km</div>
+              </sc-if>
+
+              <sc-if value="{{ jc.hasItems }}" hint-placeholder-val="{{ false }}">
+                <div style="border-top:1px solid #f1f1f3;margin-bottom:8px;padding-top:8px">
+                  <sc-for list="{{ jc.items }}" as="li" hint-placeholder-count="2">
+                    <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#4b5563;margin-bottom:3px">
+                      <span>{{ li.name }} &times;{{ li.qty }}</span><span>{{ li.amount }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="width:20px;height:20px;border-radius:50%;background:#111114;color:#f2b705;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ jc.techInitial }}</div>
+                  <div style="font-size:11.5px;color:#6b7280">{{ jc.technician }}</div>
+                </div>
+                <div style="font-size:12.5px;font-weight:700">{{ jc.totalCost }}</div>
+              </div>
+
+              <sc-if value="{{ jc.stage === 'Pending' }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ jc.onStart }}" style="width:100%;padding:8px;border-radius:8px;border:none;background:#111114;color:#f2b705;font-weight:700;font-size:12px;cursor:pointer">Start Job</button>
+              </sc-if>
+
+              <sc-if value="{{ jc.stage === 'In Progress' }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ jc.onOpenPicker }}" style="width:100%;padding:8px;border-radius:8px;border:1px dashed #d1d5db;background:#fff;color:#374151;font-weight:700;font-size:12px;cursor:pointer;margin-bottom:8px">+ Add Item</button>
+                <button onClick="{{ jc.onComplete }}" style="width:100%;padding:8px;border-radius:8px;border:none;background:#16a34a;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Mark Complete</button>
+              </sc-if>
+
+              <sc-if value="{{ jc.stage === 'Completed' }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ jc.onCreateInvoice }}" style="width:100%;padding:8px;border-radius:8px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Create Invoice</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.55);display:flex;align-items:center;justify-content:center;z-index:55;padding:16px;box-sizing:border-box">
+      <div data-el="picker-card" style="background:#fff;border-radius:18px;width:600px;max-width:100%;box-sizing:border-box;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+
+        <div style="padding:18px 20px 0 20px">
+          <div style="font-size:17px;font-weight:800;margin-bottom:2px">Add to Job Card</div>
+          <div style="font-size:12.5px;color:#8a8f98;margin-bottom:14px">{{ pickerJobLabel }}</div>
+          <div style="display:flex;gap:6px;background:#f1f1f3;border-radius:10px;padding:4px">
+            <div onClick="{{ selectTypeService }}" style="flex:1;cursor:pointer;text-align:center;padding:9px;border-radius:8px;font-size:13px;font-weight:700;background:{{ tabServiceBg }};color:{{ tabServiceColor }}">Service</div>
+            <div onClick="{{ selectTypeProduct }}" style="flex:1;cursor:pointer;text-align:center;padding:9px;border-radius:8px;font-size:13px;font-weight:700;background:{{ tabProductBg }};color:{{ tabProductColor }}">Product</div>
+          </div>
+        </div>
+
+        <div style="padding:14px 20px 12px 20px;border-bottom:1px solid #f1f1f3">
+          <input value="{{ pickerSearch }}" onChange="{{ setPickerSearch }}" placeholder="Search..." style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px;margin-bottom:10px" />
+          <div style="display:flex;align-items:center;gap:6px">
+            <div onClick="{{ scrollPickerCatsLeft }}" style="flex-shrink:0;cursor:pointer;width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#374151" stroke-width="2.2" fill="none"/></svg>
+            </div>
+            <div data-el="picker-cat-scroll" style="flex:1;min-width:0;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth">
+              <sc-for list="{{ pickerCats }}" as="pc" hint-placeholder-count="4">
+                <div onClick="{{ pc.onClick }}" style="cursor:pointer;flex-shrink:0;white-space:nowrap;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:700;background:{{ pc.bg }};color:{{ pc.color }};border:1px solid {{ pc.border }}">{{ pc.label }}</div>
+              </sc-for>
+            </div>
+            <div onClick="{{ scrollPickerCatsRight }}" style="flex-shrink:0;cursor:pointer;width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#374151" stroke-width="2.2" fill="none"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;overflow-y:auto;padding:14px 20px">
+          <div data-el="picker-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+            <sc-for list="{{ pickerResults }}" as="c" hint-placeholder-count="6">
+              <div onClick="{{ c.onSelect }}" style="cursor:pointer;text-align:left;padding:10px 12px;border-radius:10px;border:2px solid {{ c.border }};background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <div style="font-size:13px;font-weight:700;color:#16181d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                <span style="font-size:13px;font-weight:800;color:#d81f2a;flex-shrink:0">{{ c.priceLabel }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ pickerEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px;text-align:center;color:#8a8f98;font-size:14px">No matches.</div></sc-if>
+        </div>
+
+        <sc-if value="{{ pickerHasSelection }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#f7f7f8;padding:16px 22px;border-top:1px solid #f1f1f3">
+            <div><div style="font-size:14px;font-weight:800">{{ pickerSelectedName }}</div><div style="font-size:12px;color:#8a8f98">Selling price: {{ pickerSelectedPriceLabel }}</div></div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:13px;color:#6b7280;font-weight:600">Qty</span>
+              <div style="display:flex;align-items:center;gap:0;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden">
+                <button onClick="{{ decPickerQty }}" style="width:42px;height:42px;border:none;background:#fff;font-size:20px;font-weight:700;color:#374151;cursor:pointer">&minus;</button>
+                <div style="width:44px;text-align:center;font-size:15px;font-weight:700">{{ pickerQty }}</div>
+                <button onClick="{{ incPickerQty }}" style="width:42px;height:42px;border:none;background:#fff;font-size:20px;font-weight:700;color:#374151;cursor:pointer">+</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:12px;padding:14px 20px 18px 20px">
+          <button onClick="{{ closePicker }}" style="flex:1;padding:13px;border-radius:11px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:14px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmPickerAdd }}" style="flex:2;padding:13px;border-radius:11px;border:none;background:#d81f2a;color:#fff;font-weight:800;font-size:14px;cursor:pointer">Add to Job</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:440px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">New Job Card</div>
+        <div style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;padding-right:2px">
+          <input value="{{ formCustomer }}" onChange="{{ setFormCustomer }}" placeholder="Customer name" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;position:relative">
+              <input value="{{ brandSearch }}" onChange="{{ setBrandSearch }}" onFocus="{{ openBrandDropdown }}" placeholder="Brand" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+              <sc-if value="{{ brandDropdownOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                  <sc-for list="{{ brandOptions }}" as="b" hint-placeholder-count="3">
+                    <div onClick="{{ b.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ b.label }}</div>
+                  </sc-for>
+                  <sc-if value="{{ brandShowAdd }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ onAddBrandClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ brandSearch }}" as new brand</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+            <div style="flex:1;position:relative">
+              <input value="{{ modelSearch }}" onChange="{{ setModelSearch }}" onFocus="{{ openModelDropdown }}" placeholder="Model" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+              <sc-if value="{{ modelDropdownOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                  <sc-for list="{{ modelOptions }}" as="m" hint-placeholder-count="3">
+                    <div onClick="{{ m.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ m.label }}</div>
+                  </sc-for>
+                  <sc-if value="{{ modelShowAdd }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ onAddModelClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ modelSearch }}" as new model</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <input value="{{ formPlate }}" onChange="{{ setFormPlate }}" placeholder="Vehicle No. (e.g. CAR-1234)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+
+          <select value="{{ formService }}" onChange="{{ setFormService }}" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px">
+            <option>Full Service</option><option>Oil Change</option><option>Brake Service</option><option>AC Repair</option><option>Engine Diagnostics</option><option>Denting &amp; Painting</option>
+          </select>
+          <select value="{{ formTech }}" onChange="{{ setFormTech }}" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px">
+            <option>P. Kumara</option><option>J. Silva</option><option>A. Nimal</option><option>R. Bandu</option>
+          </select>
+          <input value="{{ formCost }}" onChange="{{ setFormCost }}" type="number" placeholder="Estimated cost (LKR)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+
+          <div style="display:flex;gap:8px">
+            <input value="{{ formMileage }}" onChange="{{ setFormMileage }}" type="number" placeholder="Current mileage (km)" style="flex:1;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <sc-if value="{{ showInterval }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ formInterval }}" onChange="{{ setFormInterval }}" type="number" placeholder="Interval (km)" style="width:120px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            </sc-if>
+          </div>
+          <sc-if value="{{ showInterval }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:#6b7280;background:#f7f7f8;border-radius:8px;padding:8px 10px">Next service due at <strong>{{ nextServiceLabel }}</strong> km</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeNew }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveNew }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Create Job Card</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function money(n) { return 'LKR ' + n.toLocaleString(); }
+function buildServiceCatalog(serviceCategories) {
+  const cats = serviceCategories || {};
+  const list = [];
+  Object.keys(cats).forEach(cat => (cats[cat] || []).forEach(s => list.push({ name: s.name, price: s.price, category: cat })));
+  return list;
+}
+function buildProductCatalog(products) {
+  return (products || []).map(p => ({ name: p.name, price: p.priceNum, category: p.category }));
+}
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', modalOpen: false, nextNum: 2413,
+    formCustomer: '', formService: 'Full Service', formTech: 'P. Kumara', formCost: '',
+    brandSearch: '', modelSearch: '', formPlate: '', brandDropdownOpen: false, modelDropdownOpen: false,
+    formMileage: '', formInterval: '5000',
+    pickerOpen: false, pickerType: 'service', pickerJobId: null, pickerSearch: '', pickerCat: 'all', pickerSelected: null, pickerQty: '1'
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setQuery = (e) => this.setState({ query: e.target.value });
+  openNew = () => this.setState({
+    modalOpen: true, formCustomer: '', formService: 'Full Service', formTech: 'P. Kumara', formCost: '',
+    brandSearch: '', modelSearch: '', formPlate: '', formMileage: '', formInterval: '5000'
+  });
+  closeNew = () => this.setState({ modalOpen: false });
+  setFormCustomer = (e) => this.setState({ formCustomer: e.target.value });
+  setFormService = (e) => this.setState({ formService: e.target.value });
+  setFormTech = (e) => this.setState({ formTech: e.target.value });
+  setFormCost = (e) => this.setState({ formCost: e.target.value });
+  setFormPlate = (e) => this.setState({ formPlate: e.target.value });
+  setFormMileage = (e) => this.setState({ formMileage: e.target.value });
+  setFormInterval = (e) => this.setState({ formInterval: e.target.value });
+
+  setBrandSearch = (e) => this.setState({ brandSearch: e.target.value, brandDropdownOpen: true, modelSearch: '' });
+  openBrandDropdown = () => this.setState({ brandDropdownOpen: true, modelDropdownOpen: false });
+  selectBrand = (b) => this.setState({ brandSearch: b, brandDropdownOpen: false });
+  addNewBrand = () => {
+    const b = this.state.brandSearch.trim();
+    if (!b) return;
+    (this.props.onAddBrand || function () {})(b);
+    this.setState({ brandSearch: b, brandDropdownOpen: false });
+  };
+  setModelSearch = (e) => this.setState({ modelSearch: e.target.value, modelDropdownOpen: true });
+  openModelDropdown = () => this.setState({ modelDropdownOpen: true, brandDropdownOpen: false });
+  selectModel = (m) => this.setState({ modelSearch: m, modelDropdownOpen: false });
+  addNewModel = () => {
+    const m = this.state.modelSearch.trim();
+    if (!m || !this.state.brandSearch) return;
+    (this.props.onAddModel || function () {})(this.state.brandSearch, m);
+    this.setState({ modelSearch: m, modelDropdownOpen: false });
+  };
+
+  saveNew = () => {
+    const cost = parseInt(this.state.formCost, 10) || 0;
+    const vehicle = [this.state.brandSearch, this.state.modelSearch].filter(Boolean).join(' ') + (this.state.formPlate ? ' - ' + this.state.formPlate : '');
+    const job = {
+      id: 'JC-' + this.state.nextNum, customer: this.state.formCustomer || 'Walk-in Customer', vehicle: vehicle || 'Unspecified',
+      service: this.state.formService, technician: this.state.formTech, cost: 'LKR ' + cost.toLocaleString(), stage: 'Pending', items: [],
+      mileage: this.state.formMileage ? parseInt(this.state.formMileage, 10) : null,
+      interval: parseInt(this.state.formInterval, 10) || 5000
+    };
+    (this.props.onAdd || function () {})(job);
+    this.setState({ modalOpen: false, nextNum: this.state.nextNum + 1 });
+  };
+
+  startJob = (job) => (this.props.onUpdate || function () {})(job.id, { stage: 'In Progress' });
+  completeJob = (job) => (this.props.onUpdate || function () {})(job.id, { stage: 'Completed' });
+  createInvoice = (job) => (this.props.onCreateInvoice || function () {})(job);
+
+  openPicker = (jobId) => {
+    const cats = Object.keys(this.props.serviceCategories || {});
+    this.setState({ pickerOpen: true, pickerType: 'service', pickerJobId: jobId, pickerSearch: '', pickerCat: cats[0] || 'all', pickerSelected: null, pickerQty: '1' });
+  };
+  closePicker = () => this.setState({ pickerOpen: false });
+  selectTypeService = () => {
+    const cats = Object.keys(this.props.serviceCategories || {});
+    this.setState({ pickerType: 'service', pickerCat: cats[0] || 'all', pickerSearch: '', pickerSelected: null });
+  };
+  selectTypeProduct = () => {
+    const cats = Array.from(new Set((this.props.products || []).map(p => p.category)));
+    this.setState({ pickerType: 'product', pickerCat: cats[0] || 'all', pickerSearch: '', pickerSelected: null });
+  };
+  setPickerSearch = (e) => this.setState({ pickerSearch: e.target.value });
+  setPickerCat = (c) => this.setState({ pickerCat: c, pickerSelected: null });
+  scrollPickerCatsLeft = () => { const el = document.querySelector('[data-el="picker-cat-scroll"]'); if (el) el.scrollBy({ left: -180, behavior: 'smooth' }); };
+  scrollPickerCatsRight = () => { const el = document.querySelector('[data-el="picker-cat-scroll"]'); if (el) el.scrollBy({ left: 180, behavior: 'smooth' }); };
+  incPickerQty = () => this.setState({ pickerQty: String((parseInt(this.state.pickerQty, 10) || 1) + 1) });
+  decPickerQty = () => this.setState({ pickerQty: String(Math.max(1, (parseInt(this.state.pickerQty, 10) || 1) - 1)) });
+  selectPickerItem = (name) => this.setState({ pickerSelected: name, pickerQty: '1' });
+  confirmPickerAdd = () => {
+    if (!this.state.pickerSelected) return;
+    const catalog = this.state.pickerType === 'product' ? buildProductCatalog(this.props.products) : buildServiceCatalog(this.props.serviceCategories);
+    const cat = catalog.find(c => c.name === this.state.pickerSelected);
+    const qty = parseInt(this.state.pickerQty, 10) || 1;
+    const all = this.props.jobCards || [];
+    const job = all.find(j => j.id === this.state.pickerJobId);
+    const items = [...((job && job.items) || []), { name: cat.name, qty, price: cat.price }];
+    (this.props.onUpdate || function () {})(this.state.pickerJobId, { items });
+    this.setState({ pickerOpen: false });
+  };
+
+  renderVals() {
+    const all = this.props.jobCards || [];
+    const filtered = all.filter(j =>
+      j.customer.toLowerCase().includes(this.state.query.toLowerCase()) ||
+      j.vehicle.toLowerCase().includes(this.state.query.toLowerCase()) ||
+      j.service.toLowerCase().includes(this.state.query.toLowerCase())
+    ).map(j => {
+      const items = (j.items || []).map(it => ({ ...it, amount: money(it.qty * it.price) }));
+      const itemsTotal = items.reduce((sum, it) => sum + it.qty * it.price, 0);
+      const baseCost = parseInt(String(j.cost || '').replace(/[^0-9]/g, ''), 10) || 0;
+      const serviceNeedsMileage = j.service === 'Oil Change' || j.service === 'Full Service';
+      const showMileage = !!(serviceNeedsMileage && j.mileage);
+      return {
+        ...j, items, hasItems: items.length > 0, techInitial: (j.technician || '?')[0], totalCost: money(baseCost + itemsTotal),
+        showMileage, nextService: showMileage ? (j.mileage + (j.interval || 5000)).toLocaleString() : '',
+        onOpenPicker: () => this.openPicker(j.id),
+        onStart: () => this.startJob(j), onComplete: () => this.completeJob(j), onCreateInvoice: () => this.createInvoice(j)
+      };
+    });
+    const cols = [
+      { title: 'Pending', color: '#f59e0b', items: filtered.filter(j => j.stage === 'Pending') },
+      { title: 'In Progress', color: '#7c3aed', items: filtered.filter(j => j.stage === 'In Progress') },
+      { title: 'Completed', color: '#16a34a', items: filtered.filter(j => j.stage === 'Completed') }
+    ];
+    const brands = this.props.vehicleBrands || {};
+    const brandNames = Object.keys(brands);
+    const brandMatches = brandNames.filter(b => b.toLowerCase().includes(this.state.brandSearch.toLowerCase()));
+    const brandExact = brandNames.some(b => b.toLowerCase() === this.state.brandSearch.trim().toLowerCase());
+    const modelList = brands[this.state.brandSearch] || [];
+    const modelMatches = modelList.filter(m => m.toLowerCase().includes(this.state.modelSearch.toLowerCase()));
+    const modelExact = modelList.some(m => m.toLowerCase() === this.state.modelSearch.trim().toLowerCase());
+    const showInterval = this.state.formService === 'Oil Change' || this.state.formService === 'Full Service';
+    const mileageNum = parseInt(this.state.formMileage, 10) || 0;
+    const intervalNum = parseInt(this.state.formInterval, 10) || 5000;
+
+    const catalog = this.state.pickerType === 'product' ? buildProductCatalog(this.props.products) : buildServiceCatalog(this.props.serviceCategories);
+    const catNames = Array.from(new Set(catalog.map(c => c.category)));
+    const pickerJob = all.find(j => j.id === this.state.pickerJobId);
+    const pickerResults = catalog
+      .filter(c => (this.state.pickerCat === 'all' || c.category === this.state.pickerCat) && c.name.toLowerCase().includes(this.state.pickerSearch.toLowerCase()))
+      .map(c => ({
+        name: c.name, category: c.category, priceLabel: money(c.price),
+        bg: this.state.pickerSelected === c.name ? '#fff5f5' : '#fafafa',
+        border: this.state.pickerSelected === c.name ? '#d81f2a' : '#ececef',
+        onSelect: () => this.selectPickerItem(c.name)
+      }));
+    const pickerCats = catNames.map(cn => {
+      const active = this.state.pickerCat === cn;
+      return { label: cn, bg: active ? '#111114' : '#fff', color: active ? '#fff' : '#374151', border: active ? '#111114' : '#e5e7eb', onClick: () => this.setPickerCat(cn) };
+    });
+    const selectedCat = catalog.find(c => c.name === this.state.pickerSelected);
+
+    return {
+      loading: this.state.loading, skel: [1, 2, 3], query: this.state.query, setQuery: this.setQuery, columns: cols,
+      modalOpen: this.state.modalOpen, openNew: this.openNew, closeNew: this.closeNew, saveNew: this.saveNew,
+      formCustomer: this.state.formCustomer, setFormCustomer: this.setFormCustomer,
+      formVehicle: this.state.formVehicle, setFormVehicle: this.setFormVehicle,
+      formService: this.state.formService, setFormService: this.setFormService,
+      formTech: this.state.formTech, setFormTech: this.setFormTech,
+      formCost: this.state.formCost, setFormCost: this.setFormCost,
+      brandSearch: this.state.brandSearch, setBrandSearch: this.setBrandSearch, openBrandDropdown: this.openBrandDropdown,
+      brandDropdownOpen: this.state.brandDropdownOpen,
+      brandOptions: brandMatches.map(b => ({ label: b, onClick: () => this.selectBrand(b) })),
+      brandShowAdd: this.state.brandSearch.trim().length > 0 && !brandExact,
+      onAddBrandClick: this.addNewBrand,
+      modelSearch: this.state.modelSearch, setModelSearch: this.setModelSearch, openModelDropdown: this.openModelDropdown,
+      modelDropdownOpen: this.state.modelDropdownOpen,
+      modelOptions: modelMatches.map(m => ({ label: m, onClick: () => this.selectModel(m) })),
+      modelShowAdd: this.state.modelSearch.trim().length > 0 && !modelExact,
+      onAddModelClick: this.addNewModel,
+      formPlate: this.state.formPlate, setFormPlate: this.setFormPlate,
+      formMileage: this.state.formMileage, setFormMileage: this.setFormMileage,
+      formInterval: this.state.formInterval, setFormInterval: this.setFormInterval,
+      showInterval, nextServiceLabel: (mileageNum + intervalNum).toLocaleString(),
+      pickerOpen: this.state.pickerOpen, closePicker: this.closePicker,
+      pickerJobLabel: pickerJob ? (pickerJob.id + ' \u00b7 ' + pickerJob.customer) : '',
+      selectTypeService: this.selectTypeService, selectTypeProduct: this.selectTypeProduct,
+      tabServiceBg: this.state.pickerType === 'service' ? '#fff' : 'transparent', tabServiceColor: this.state.pickerType === 'service' ? '#111114' : '#6b7280',
+      tabProductBg: this.state.pickerType === 'product' ? '#fff' : 'transparent', tabProductColor: this.state.pickerType === 'product' ? '#111114' : '#6b7280',
+      pickerSearch: this.state.pickerSearch, setPickerSearch: this.setPickerSearch,
+      scrollPickerCatsLeft: this.scrollPickerCatsLeft, scrollPickerCatsRight: this.scrollPickerCatsRight,
+      pickerCats, pickerResults, pickerEmpty: pickerResults.length === 0,
+      pickerHasSelection: !!selectedCat, pickerSelectedName: this.state.pickerSelected,
+      pickerSelectedPriceLabel: selectedCat ? money(selectedCat.price) : '',
+      pickerQty: this.state.pickerQty, incPickerQty: this.incPickerQty, decPickerQty: this.decPickerQty, confirmPickerAdd: this.confirmPickerAdd
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:900px){[data-el="tbl-head"],[data-el="tbl-row"]{min-width:760px}[data-el="tbl-scroll"]{overflow-x:auto}}
+  </style></helmet>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+    <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search customers or plate number..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:280px" />
+    <button onClick="{{ openNew }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ New Customer</button>
+  </div>
+
+  <div data-el="tbl-scroll" style="background:#fff;border:1px solid #ececef;border-radius:14px;overflow-x:auto">
+    <div data-el="tbl-head" style="display:grid;grid-template-columns:1.4fr 1.2fr 2fr 0.8fr 0.8fr;padding:12px 18px;font-size:11.5px;font-weight:700;color:#8a8f98;text-transform:uppercase;letter-spacing:0.03em;border-bottom:1px solid #f1f1f3">
+      <div>Customer</div><div>Phone</div><div>Vehicles</div><div>Visits</div><div>Actions</div>
+    </div>
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ skelRows }}" as="s" hint-placeholder-count="6"><div style="padding:16px 18px;border-bottom:1px solid #f5f5f6"><div class="skel" style="height:16px;border-radius:6px;width:90%"></div></div></sc-for>
+    </sc-if>
+    <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <sc-for list="{{ items }}" as="c" hint-placeholder-count="8">
+        <div data-el="tbl-row" style="display:grid;grid-template-columns:1.4fr 1.2fr 2fr 0.8fr 0.8fr;padding:14px 18px;font-size:13px;align-items:center;border-bottom:1px solid #f5f5f6">
+          <div style="font-weight:700;color:#16181d">{{ c.name }}</div>
+          <div style="color:#4b5563;font-size:12.5px">{{ c.phone }}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ c.vehicles }}" as="v" hint-placeholder-count="1">
+              <span style="font-size:11.5px;background:#f1f1f3;color:#374151;padding:3px 9px;border-radius:999px;font-weight:600">{{ v }}</span>
+            </sc-for>
+          </div>
+          <div style="color:#4b5563">{{ c.visits }}</div>
+          <div style="display:flex;gap:10px">
+            <span onClick="{{ c.onEdit }}" title="Edit" style="cursor:pointer;color:#6b7280">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+            <span onClick="{{ c.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ true }}"><div style="padding:16px;text-align:center;color:#8a8f98;font-size:12.5px">Loading more...</div></sc-if>
+    </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">Delete customer?</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">This will remove <strong>{{ confirmName }}</strong>. This action cannot be undone.</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelDelete }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmDelete }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">{{ modalTitle }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="position:relative">
+            <input value="{{ formName }}" onChange="{{ setFormName }}" onFocus="{{ openNameDropdown }}" placeholder="Customer name" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <sc-if value="{{ nameDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                <sc-for list="{{ nameMatchOptions }}" as="n" hint-placeholder-count="3">
+                  <div onClick="{{ n.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">
+                    <div style="font-weight:700">{{ n.name }}</div><div style="font-size:11px;color:#8a8f98">{{ n.phone }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div style="position:relative">
+            <input value="{{ formPhone }}" onChange="{{ setFormPhone }}" onFocus="{{ openPhoneDropdown }}" placeholder="Phone" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <sc-if value="{{ phoneDropdownOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                <sc-for list="{{ phoneMatchOptions }}" as="n" hint-placeholder-count="3">
+                  <div onClick="{{ n.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">
+                    <div style="font-weight:700">{{ n.name }}</div><div style="font-size:11px;color:#8a8f98">{{ n.phone }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;position:relative">
+              <input value="{{ brandSearch }}" onChange="{{ setBrandSearch }}" onFocus="{{ openBrandDropdown }}" placeholder="Brand" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+              <sc-if value="{{ brandDropdownOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                  <sc-for list="{{ brandOptions }}" as="b" hint-placeholder-count="3">
+                    <div onClick="{{ b.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ b.label }}</div>
+                  </sc-for>
+                  <sc-if value="{{ brandShowAdd }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ onAddBrandClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ brandSearch }}" as new brand</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+            <div style="flex:1;position:relative">
+              <input value="{{ modelSearch }}" onChange="{{ setModelSearch }}" onFocus="{{ openModelDropdown }}" placeholder="Model" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+              <sc-if value="{{ modelDropdownOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                  <sc-for list="{{ modelOptions }}" as="m" hint-placeholder-count="3">
+                    <div onClick="{{ m.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ m.label }}</div>
+                  </sc-for>
+                  <sc-if value="{{ modelShowAdd }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ onAddModelClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ modelSearch }}" as new model</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <input value="{{ formPlate }}" onChange="{{ setFormPlate }}" placeholder="Vehicle No. (e.g. CAR-1234)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeModal }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveModal }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAMES = ['K. Perera','S. Fernando','N. Silva','A. Rathnayake','M. Jayasuriya','D. Wickramasinghe','R. Gunasekara','T. Dissanayake','P. Weerasinghe','C. Bandara','L. Amarasinghe','H. Rajapaksha'];
+const PLATES = [['CAR-1234 (Toyota Aqua)'], ['CAB-5678 (Suzuki Alto)', 'WP-9021 (Three-wheeler)'], ['CAA-3345 (Honda Vezel)'], ['PB-1120 (Tata Van)'], ['BBH-2214 (Yamaha FZ)']];
+function makeCustomers(n) {
+  const arr = [];
+  for (let i = 0; i < n; i++) {
+    arr.push({ id: i, name: NAMES[i % NAMES.length], phone: '077 ' + (1000000 + i * 137).toString().slice(0, 3) + ' ' + (1000 + i * 37).toString().slice(0, 4), vehicles: PLATES[i % PLATES.length], visits: 3 + (i % 12) });
+  }
+  return arr;
+}
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', visible: 8, all: makeCustomers(36), modalOpen: false, editIdx: null,
+    formName: '', formPhone: '', brandSearch: '', modelSearch: '', formPlate: '',
+    nameDropdownOpen: false, phoneDropdownOpen: false, brandDropdownOpen: false, modelDropdownOpen: false,
+    confirmOpen: false, confirmId: null
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setQuery = (e) => this.setState({ query: e.target.value, visible: 8 });
+
+  openNew = () => this.setState({ modalOpen: true, editIdx: null, formName: '', formPhone: '', brandSearch: '', modelSearch: '', formPlate: '' });
+  openEdit = (id) => {
+    const c = this.state.all.find(x => x.id === id);
+    const parts = (c.vehicles[0] || '').split(' - ');
+    const bm = (parts[0] || '').split(' ');
+    this.setState({ modalOpen: true, editIdx: id, formName: c.name, formPhone: c.phone, brandSearch: bm[0] || '', modelSearch: bm.slice(1).join(' ') || '', formPlate: parts[1] || '' });
+  };
+  closeModal = () => this.setState({ modalOpen: false, nameDropdownOpen: false, phoneDropdownOpen: false });
+  setFormName = (e) => this.setState({ formName: e.target.value, nameDropdownOpen: true });
+  openNameDropdown = () => this.setState({ nameDropdownOpen: true, phoneDropdownOpen: false });
+  setFormPhone = (e) => this.setState({ formPhone: e.target.value, phoneDropdownOpen: true });
+  openPhoneDropdown = () => this.setState({ phoneDropdownOpen: true, nameDropdownOpen: false });
+  selectExistingCustomer = (c) => this.setState({ formName: c.name, formPhone: c.phone, editIdx: c.id, nameDropdownOpen: false, phoneDropdownOpen: false });
+
+  setBrandSearch = (e) => this.setState({ brandSearch: e.target.value, brandDropdownOpen: true, modelSearch: '' });
+  openBrandDropdown = () => this.setState({ brandDropdownOpen: true, modelDropdownOpen: false });
+  selectBrand = (b) => this.setState({ brandSearch: b, brandDropdownOpen: false });
+  addNewBrand = () => {
+    const b = this.state.brandSearch.trim();
+    if (!b) return;
+    (this.props.onAddBrand || function () {})(b);
+    this.setState({ brandSearch: b, brandDropdownOpen: false });
+  };
+  setModelSearch = (e) => this.setState({ modelSearch: e.target.value, modelDropdownOpen: true });
+  openModelDropdown = () => this.setState({ modelDropdownOpen: true, brandDropdownOpen: false });
+  selectModel = (m) => this.setState({ modelSearch: m, modelDropdownOpen: false });
+  addNewModel = () => {
+    const m = this.state.modelSearch.trim();
+    if (!m || !this.state.brandSearch) return;
+    (this.props.onAddModel || function () {})(this.state.brandSearch, m);
+    this.setState({ modelSearch: m, modelDropdownOpen: false });
+  };
+  setFormPlate = (e) => this.setState({ formPlate: e.target.value });
+
+  saveModal = () => {
+    const vehicle = [this.state.brandSearch, this.state.modelSearch].filter(Boolean).join(' ') + (this.state.formPlate ? ' - ' + this.state.formPlate : '');
+    if (this.state.editIdx === null || !this.state.all.some(c => c.id === this.state.editIdx)) {
+      const nextId = Math.max(-1, ...this.state.all.map(c => c.id)) + 1;
+      this.setState({
+        all: [...this.state.all, { id: nextId, name: this.state.formName, phone: this.state.formPhone, vehicles: vehicle ? [vehicle] : [], visits: 0 }],
+        modalOpen: false
+      });
+    } else {
+      this.setState({
+        all: this.state.all.map(c => c.id === this.state.editIdx ? { ...c, name: this.state.formName, phone: this.state.formPhone, vehicles: vehicle ? [vehicle, ...c.vehicles.filter(v => v !== vehicle)] : c.vehicles } : c),
+        modalOpen: false
+      });
+    }
+  };
+  deleteCustomer = (id) => this.setState({ confirmOpen: true, confirmId: id });
+  cancelDelete = () => this.setState({ confirmOpen: false, confirmId: null });
+  confirmDelete = () => this.setState({ all: this.state.all.filter(c => c.id !== this.state.confirmId), confirmOpen: false, confirmId: null });
+
+  renderVals() {
+    const filtered = this.state.all.filter(c =>
+      c.name.toLowerCase().includes(this.state.query.toLowerCase()) ||
+      c.vehicles.some(v => v.toLowerCase().includes(this.state.query.toLowerCase()))
+    );
+    const items = filtered.slice(0, this.state.visible).map(c => ({ ...c, onEdit: () => this.openEdit(c.id), onDelete: () => this.deleteCustomer(c.id) }));
+
+    const brands = this.props.vehicleBrands || {};
+    const brandNames = Object.keys(brands);
+    const brandMatches = brandNames.filter(b => b.toLowerCase().includes(this.state.brandSearch.toLowerCase()));
+    const brandExact = brandNames.some(b => b.toLowerCase() === this.state.brandSearch.trim().toLowerCase());
+    const modelList = brands[this.state.brandSearch] || [];
+    const modelMatches = modelList.filter(m => m.toLowerCase().includes(this.state.modelSearch.toLowerCase()));
+    const modelExact = modelList.some(m => m.toLowerCase() === this.state.modelSearch.trim().toLowerCase());
+
+    const nameMatches = this.state.formName.trim() ? this.state.all.filter(c => c.name.toLowerCase().includes(this.state.formName.toLowerCase())).slice(0, 6) : [];
+    const phoneMatches = this.state.formPhone.trim() ? this.state.all.filter(c => c.phone.includes(this.state.formPhone)).slice(0, 6) : [];
+
+    return {
+      loading: this.state.loading, skelRows: [1, 2, 3, 4, 5, 6], query: this.state.query, setQuery: this.setQuery, items, hasMore: items.length < filtered.length,
+      openNew: this.openNew, modalOpen: this.state.modalOpen, closeModal: this.closeModal, saveModal: this.saveModal,
+      modalTitle: this.state.editIdx === null ? 'New Customer' : 'Edit Customer',
+      formName: this.state.formName, setFormName: this.setFormName, openNameDropdown: this.openNameDropdown,
+      nameDropdownOpen: this.state.nameDropdownOpen, nameMatchOptions: nameMatches.map(c => ({ name: c.name, phone: c.phone, onClick: () => this.selectExistingCustomer(c) })),
+      formPhone: this.state.formPhone, setFormPhone: this.setFormPhone, openPhoneDropdown: this.openPhoneDropdown,
+      phoneDropdownOpen: this.state.phoneDropdownOpen, phoneMatchOptions: phoneMatches.map(c => ({ name: c.name, phone: c.phone, onClick: () => this.selectExistingCustomer(c) })),
+      brandSearch: this.state.brandSearch, setBrandSearch: this.setBrandSearch, openBrandDropdown: this.openBrandDropdown,
+      brandDropdownOpen: this.state.brandDropdownOpen,
+      brandOptions: brandMatches.map(b => ({ label: b, onClick: () => this.selectBrand(b) })),
+      brandShowAdd: this.state.brandSearch.trim().length > 0 && !brandExact, onAddBrandClick: this.addNewBrand,
+      modelSearch: this.state.modelSearch, setModelSearch: this.setModelSearch, openModelDropdown: this.openModelDropdown,
+      modelDropdownOpen: this.state.modelDropdownOpen,
+      modelOptions: modelMatches.map(m => ({ label: m, onClick: () => this.selectModel(m) })),
+      modelShowAdd: this.state.modelSearch.trim().length > 0 && !modelExact, onAddModelClick: this.addNewModel,
+      formPlate: this.state.formPlate, setFormPlate: this.setFormPlate,
+      confirmOpen: this.state.confirmOpen, cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+      confirmName: (this.state.all.find(c => c.id === this.state.confirmId) || {}).name || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

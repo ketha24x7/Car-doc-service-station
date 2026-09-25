@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:900px){[data-el="tbl-head"],[data-el="tbl-row"]{min-width:760px}[data-el="tbl-scroll"]{overflow-x:auto}[data-el="modal-card"]{width:min(440px,92vw) !important}}
+  </style></helmet>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+        <div onClick="{{ f.onClick }}" style="cursor:pointer;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;background:{{ f.bg }};color:{{ f.color }};border:1px solid {{ f.border }}">{{ f.label }}</div>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:10px">
+      <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search appointments..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:220px" />
+      <button onClick="{{ openNew }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ New Appointment</button>
+    </div>
+  </div>
+
+  <div data-el="tbl-scroll" style="background:#fff;border:1px solid #ececef;border-radius:14px;overflow-x:auto">
+    <div data-el="tbl-head" style="display:grid;grid-template-columns:1.6fr 1.4fr 1.4fr 1.2fr 1fr 1.1fr 0.8fr;padding:12px 18px;font-size:11.5px;font-weight:700;color:#8a8f98;text-transform:uppercase;letter-spacing:0.03em;border-bottom:1px solid #f1f1f3">
+      <div>Customer</div><div>Vehicle</div><div>Service</div><div>Date &amp; Time</div><div>Advisor</div><div>Status</div><div></div>
+    </div>
+
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ skelRows }}" as="s" hint-placeholder-count="6">
+        <div style="padding:16px 18px;border-bottom:1px solid #f5f5f6"><div class="skel" style="height:16px;border-radius:6px;width:90%"></div></div>
+      </sc-for>
+    </sc-if>
+
+    <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <sc-for list="{{ items }}" as="a" hint-placeholder-count="8">
+        <div data-el="tbl-row" style="display:grid;grid-template-columns:1.6fr 1.4fr 1.4fr 1.2fr 1fr 1.1fr 0.8fr;padding:14px 18px;font-size:13px;align-items:center;border-bottom:1px solid #f5f5f6">
+          <div style="font-weight:600;color:#16181d">{{ a.customer }}</div>
+          <div style="color:#4b5563">{{ a.vehicle }}</div>
+          <div style="color:#4b5563">{{ a.service }}</div>
+          <div style="color:#4b5563;font-size:12.5px">{{ a.datetime }}</div>
+          <div style="color:#4b5563">{{ a.advisor }}</div>
+          <div style="position:relative">
+            <sc-if value="{{ a.statusLocked }}" hint-placeholder-val="{{ false }}">
+              <span title="Change from Job Cards" style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:{{ a.statusBg }};color:{{ a.statusColor }}">{{ a.status }}</span>
+            </sc-if>
+            <sc-if value="{{ !a.statusLocked }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ a.onToggleMenu }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;background:{{ a.statusBg }};color:{{ a.statusColor }}">
+                {{ a.status }}
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="{{ a.statusColor }}" stroke-width="2.4" fill="none"/></svg>
+              </div>
+              <sc-if value="{{ a.menuOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #ececef;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,0.12);z-index:30;overflow:hidden;min-width:120px">
+                  <sc-for list="{{ a.statusOptions }}" as="so" hint-placeholder-count="3">
+                    <div onClick="{{ so.onClick }}" style="cursor:pointer;padding:9px 14px;font-size:12px;font-weight:700;color:{{ so.color }};background:{{ so.rowBg }};display:flex;align-items:center;gap:8px">
+                      <span style="width:7px;height:7px;border-radius:50%;background:{{ so.color }}"></span>{{ so.label }}
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </sc-if>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:14px;padding-left:10px">
+            <span onClick="{{ a.onEdit }}" title="Edit" style="cursor:pointer;color:#6b7280">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+            <span onClick="{{ a.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px;text-align:center;color:#8a8f98;font-size:13px">No appointments match your search.</div>
+      </sc-if>
+      <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:16px;text-align:center;color:#8a8f98;font-size:12.5px">Loading more...</div>
+      </sc-if>
+    </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">Delete appointment?</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">This will remove the appointment for <strong>{{ confirmName }}</strong>. This action cannot be undone.</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelDelete }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmDelete }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div data-el="modal-card" style="background:#fff;border-radius:16px;padding:26px;width:440px;box-sizing:border-box;max-width:92vw">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">New Appointment</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input value="{{ formCustomer }}" onChange="{{ setFormCustomer }}" placeholder="Customer name" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;position:relative">
+              <input value="{{ brandSearch }}" onChange="{{ setBrandSearch }}" onFocus="{{ openBrandDropdown }}" placeholder="Brand" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+              <sc-if value="{{ brandDropdownOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                  <sc-for list="{{ brandOptions }}" as="b" hint-placeholder-count="3">
+                    <div onClick="{{ b.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ b.label }}</div>
+                  </sc-for>
+                  <sc-if value="{{ brandShowAdd }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ onAddBrandClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ brandSearch }}" as new brand</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+            <div style="flex:1;position:relative">
+              <input value="{{ modelSearch }}" onChange="{{ setModelSearch }}" onFocus="{{ openModelDropdown }}" placeholder="Model" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+              <sc-if value="{{ modelDropdownOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-top:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+                  <sc-for list="{{ modelOptions }}" as="m" hint-placeholder-count="3">
+                    <div onClick="{{ m.onClick }}" style="padding:9px 12px;font-size:13px;cursor:pointer">{{ m.label }}</div>
+                  </sc-for>
+                  <sc-if value="{{ modelShowAdd }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ onAddModelClick }}" style="padding:9px 12px;font-size:13px;color:#d81f2a;font-weight:700;cursor:pointer;border-top:1px solid #f1f1f3">+ Add "{{ modelSearch }}" as new model</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <input value="{{ formPlate }}" onChange="{{ setFormPlate }}" placeholder="Vehicle No. (e.g. CAR-1234)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <select value="{{ formService }}" onChange="{{ setFormService }}" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px">
+            <option>Full Service</option><option>Oil Change</option><option>Brake Service</option><option>AC Repair</option><option>Wheel Alignment &amp; Balancing</option>
+          </select>
+          <div style="display:flex;gap:10px">
+            <input value="{{ formDate }}" onChange="{{ setFormDate }}" type="date" style="flex:1;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <input value="{{ formTime }}" onChange="{{ setFormTime }}" type="time" style="flex:1;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#f7f7f8;border-radius:9px;padding:10px 12px;margin-top:4px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#374151">Create job card for this appointment</div>
+              <div style="font-size:11px;color:#8a8f98">Automatically opens a job card when saved</div>
+            </div>
+            <div onClick="{{ toggleCreateJobCard }}" style="width:36px;height:20px;border-radius:999px;background:{{ jobCardToggleBg }};position:relative;cursor:pointer;flex-shrink:0">
+              <div style="position:absolute;top:2px;left:{{ jobCardToggleLeft }};width:16px;height:16px;border-radius:50%;background:#fff"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeNew }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveNew }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save Appointment</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATUSES = [
+  { s: 'Pending', bg: '#fef3c7', c: '#b45309' },
+  { s: 'Confirmed', bg: '#dbeafe', c: '#1d4ed8' },
+  { s: 'In Progress', bg: '#ede9fe', c: '#6d28d9' },
+  { s: 'Completed', bg: '#dcfce7', c: '#15803d' },
+  { s: 'Cancelled', bg: '#fee2e2', c: '#b91c1c' }
+];
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', filter: 'all', visible: 8, modalOpen: false,
+    confirmOpen: false, confirmId: null, statusMenuOpenId: null,
+    formCustomer: '', brandSearch: '', modelSearch: '', formPlate: '', brandDropdownOpen: false, modelDropdownOpen: false,
+    formService: 'Full Service', formDate: '', formTime: '', createJobCard: true
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setQuery = (e) => this.setState({ query: e.target.value, visible: 8 });
+  setFilter = (f) => this.setState({ filter: f, visible: 8 });
+
+  openNew = () => this.setState({ modalOpen: true, formCustomer: '', brandSearch: '', modelSearch: '', formPlate: '', formService: 'Full Service', formDate: '', formTime: '', createJobCard: true });
+  closeNew = () => this.setState({ modalOpen: false });
+  setFormCustomer = (e) => this.setState({ formCustomer: e.target.value });
+  setFormPlate = (e) => this.setState({ formPlate: e.target.value });
+  setFormService = (e) => this.setState({ formService: e.target.value });
+  setFormDate = (e) => this.setState({ formDate: e.target.value });
+  setFormTime = (e) => this.setState({ formTime: e.target.value });
+  toggleCreateJobCard = () => this.setState({ createJobCard: !this.state.createJobCard });
+
+  setBrandSearch = (e) => this.setState({ brandSearch: e.target.value, brandDropdownOpen: true, modelSearch: '' });
+  openBrandDropdown = () => this.setState({ brandDropdownOpen: true, modelDropdownOpen: false });
+  selectBrand = (b) => this.setState({ brandSearch: b, brandDropdownOpen: false });
+  addNewBrand = () => {
+    const b = this.state.brandSearch.trim();
+    if (!b) return;
+    (this.props.onAddBrand || function () {})(b);
+    this.setState({ brandSearch: b, brandDropdownOpen: false });
+  };
+  setModelSearch = (e) => this.setState({ modelSearch: e.target.value, modelDropdownOpen: true });
+  openModelDropdown = () => this.setState({ modelDropdownOpen: true, brandDropdownOpen: false });
+  selectModel = (m) => this.setState({ modelSearch: m, modelDropdownOpen: false });
+  addNewModel = () => {
+    const m = this.state.modelSearch.trim();
+    if (!m || !this.state.brandSearch) return;
+    (this.props.onAddModel || function () {})(this.state.brandSearch, m);
+    this.setState({ modelSearch: m, modelDropdownOpen: false });
+  };
+
+  saveNew = () => {
+    const dateLabel = this.state.formDate ? new Date(this.state.formDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD';
+    const vehicle = [this.state.brandSearch, this.state.modelSearch].filter(Boolean).join(' ') + (this.state.formPlate ? ' - ' + this.state.formPlate : '');
+    const fields = {
+      customer: this.state.formCustomer || 'Walk-in Customer', vehicle: vehicle || 'Unspecified',
+      service: this.state.formService, datetime: dateLabel + (this.state.formTime ? ', ' + this.state.formTime : ''),
+      advisor: 'Unassigned'
+    };
+    (this.props.onAdd || function () {})(fields, this.state.createJobCard);
+    this.setState({ modalOpen: false });
+  };
+
+  deleteAppt = (id) => this.setState({ confirmOpen: true, confirmId: id });
+  cancelDelete = () => this.setState({ confirmOpen: false, confirmId: null });
+  confirmDelete = () => {
+    (this.props.onDelete || function () {})(this.state.confirmId);
+    this.setState({ confirmOpen: false, confirmId: null });
+  };
+  editAppt = (id) => { window.alert('Edit appointment ' + id + ' (demo)'); };
+  toggleStatusMenu = (id) => this.setState({ statusMenuOpenId: this.state.statusMenuOpenId === id ? null : id });
+  selectStatus = (id, status) => {
+    (this.props.onStatusChange || function () {})(id, status);
+    this.setState({ statusMenuOpenId: null });
+  };
+
+  renderVals() {
+    const all = this.props.appointments || [];
+    const filtered = all.filter(a =>
+      (this.state.filter === 'all' || a.status === this.state.filter) &&
+      (a.customer.toLowerCase().includes(this.state.query.toLowerCase()) ||
+       a.vehicle.toLowerCase().includes(this.state.query.toLowerCase()) ||
+       a.service.toLowerCase().includes(this.state.query.toLowerCase()))
+    );
+    const items = filtered.slice(0, this.state.visible).map(a => {
+      const st = STATUSES.find(s => s.s === a.status) || STATUSES[0];
+      return {
+        ...a, statusBg: st.bg, statusColor: st.c, statusLocked: a.status === 'In Progress' || a.status === 'Completed',
+        onEdit: () => this.editAppt(a.id), onDelete: () => this.deleteAppt(a.id),
+        onToggleMenu: () => this.toggleStatusMenu(a.id), menuOpen: this.state.statusMenuOpenId === a.id,
+        statusOptions: ['Pending', 'Confirmed', 'Cancelled'].map(s => {
+          const opt = STATUSES.find(x => x.s === s);
+          return { label: s, color: opt.c, rowBg: a.status === s ? '#f7f7f8' : '#fff', onClick: () => this.selectStatus(a.id, s) };
+        }),
+        onStatusChange: (e) => (this.props.onStatusChange || function () {})(a.id, e.target.value)
+      };
+    });
+    const filterDefs = ['all', ...STATUSES.map(s => s.s)];
+    const brands = this.props.vehicleBrands || {};
+    const brandNames = Object.keys(brands);
+    const brandMatches = brandNames.filter(b => b.toLowerCase().includes(this.state.brandSearch.toLowerCase()));
+    const brandExact = brandNames.some(b => b.toLowerCase() === this.state.brandSearch.trim().toLowerCase());
+    const modelList = brands[this.state.brandSearch] || [];
+    const modelMatches = modelList.filter(m => m.toLowerCase().includes(this.state.modelSearch.toLowerCase()));
+    const modelExact = modelList.some(m => m.toLowerCase() === this.state.modelSearch.trim().toLowerCase());
+    return {
+      loading: this.state.loading,
+      skelRows: [1, 2, 3, 4, 5, 6],
+      query: this.state.query, setQuery: this.setQuery,
+      filters: filterDefs.map(f => {
+        const active = this.state.filter === f;
+        return { label: f === 'all' ? 'All' : f, bg: active ? '#111114' : '#fff', color: active ? '#fff' : '#374151', border: active ? '#111114' : '#e5e7eb', onClick: () => this.setFilter(f) };
+      }),
+      items, isEmpty: items.length === 0, hasMore: items.length < filtered.length,
+      modalOpen: this.state.modalOpen, openNew: this.openNew, closeNew: this.closeNew, saveNew: this.saveNew,
+      formCustomer: this.state.formCustomer, setFormCustomer: this.setFormCustomer,
+      brandSearch: this.state.brandSearch, setBrandSearch: this.setBrandSearch, openBrandDropdown: this.openBrandDropdown,
+      brandDropdownOpen: this.state.brandDropdownOpen,
+      brandOptions: brandMatches.map(b => ({ label: b, onClick: () => this.selectBrand(b) })),
+      brandShowAdd: this.state.brandSearch.trim().length > 0 && !brandExact, onAddBrandClick: this.addNewBrand,
+      modelSearch: this.state.modelSearch, setModelSearch: this.setModelSearch, openModelDropdown: this.openModelDropdown,
+      modelDropdownOpen: this.state.modelDropdownOpen,
+      modelOptions: modelMatches.map(m => ({ label: m, onClick: () => this.selectModel(m) })),
+      modelShowAdd: this.state.modelSearch.trim().length > 0 && !modelExact, onAddModelClick: this.addNewModel,
+      formPlate: this.state.formPlate, setFormPlate: this.setFormPlate,
+      formService: this.state.formService, setFormService: this.setFormService,
+      formDate: this.state.formDate, setFormDate: this.setFormDate,
+      formTime: this.state.formTime, setFormTime: this.setFormTime,
+      toggleCreateJobCard: this.toggleCreateJobCard,
+      jobCardToggleBg: this.state.createJobCard ? '#16a34a' : '#d1d5db',
+      jobCardToggleLeft: this.state.createJobCard ? '18px' : '2px',
+      confirmOpen: this.state.confirmOpen, cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+      confirmName: (all.find(a => a.id === this.state.confirmId) || {}).customer || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

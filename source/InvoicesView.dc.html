@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:900px){[data-el="tbl-head"],[data-el="tbl-row"]{min-width:700px}[data-el="tbl-scroll"]{overflow-x:auto}}
+    @media (max-width:640px){[data-el="modal-card"],[data-el="view-card"]{width:92vw !important}}
+  </style></helmet>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+        <div onClick="{{ f.onClick }}" style="cursor:pointer;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;background:{{ f.bg }};color:{{ f.color }};border:1px solid {{ f.border }}">{{ f.label }}</div>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:10px">
+      <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search invoices..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:220px" />
+      <button onClick="{{ openNew }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ New Invoice</button>
+    </div>
+  </div>
+
+  <div data-el="tbl-scroll" style="background:#fff;border:1px solid #ececef;border-radius:14px;overflow-x:auto">
+    <div data-el="tbl-head" style="display:grid;grid-template-columns:1fr 1.6fr 1.2fr 1fr 1fr 1fr;padding:12px 18px;font-size:11.5px;font-weight:700;color:#8a8f98;text-transform:uppercase;letter-spacing:0.03em;border-bottom:1px solid #f1f1f3">
+      <div>Invoice #</div><div>Customer</div><div>Date</div><div>Amount</div><div>Status</div><div>Actions</div>
+    </div>
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ skelRows }}" as="s" hint-placeholder-count="6"><div style="padding:16px 18px;border-bottom:1px solid #f5f5f6"><div class="skel" style="height:16px;border-radius:6px;width:90%"></div></div></sc-for>
+    </sc-if>
+    <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <sc-for list="{{ items }}" as="inv" hint-placeholder-count="8">
+        <div data-el="tbl-row" style="display:grid;grid-template-columns:1fr 1.6fr 1.2fr 1fr 1fr 1fr;padding:14px 18px;font-size:13px;align-items:center;border-bottom:1px solid #f5f5f6">
+          <div style="font-weight:700;color:#16181d">{{ inv.id }}</div>
+          <div style="color:#4b5563">{{ inv.customer }}</div>
+          <div style="color:#4b5563;font-size:12.5px">{{ inv.date }}</div>
+          <div style="font-weight:700">{{ inv.total }}</div>
+          <div><span style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:{{ inv.statusBg }};color:{{ inv.statusColor }}">{{ inv.status }}</span></div>
+          <div style="display:flex;gap:12px">
+            <span onClick="{{ inv.onView }}" style="color:#d81f2a;font-weight:700;font-size:12px;cursor:pointer">View</span>
+            <span onClick="{{ inv.onPrint }}" title="Print / Download PDF" style="cursor:pointer;color:#6b7280">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a1 1 0 01-1-1v-6a1 1 0 011-1h18a1 1 0 011 1v6a1 1 0 01-1 1h-2M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ true }}"><div style="padding:16px;text-align:center;color:#8a8f98;font-size:12.5px">Loading more...</div></sc-if>
+    </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ newOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div data-el="modal-card" style="background:#fff;border-radius:16px;padding:26px;width:480px;box-sizing:border-box;max-width:92vw;max-height:88vh;overflow-y:auto">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">New Invoice</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input value="{{ newCustomer }}" onChange="{{ setNewCustomer }}" placeholder="Customer name" autocomplete="off" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;color:#16181d;background:#fff" />
+          <input value="{{ newVehicle }}" onChange="{{ setNewVehicle }}" placeholder="Vehicle" autocomplete="off" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;color:#16181d;background:#fff" />
+
+          <sc-if value="{{ hasNewItems }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #f1f1f3;border-radius:9px;overflow:hidden">
+              <sc-for list="{{ newItems }}" as="li" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #f5f5f6;font-size:12.5px;color:#16181d">
+                  <div style="flex:2;color:#16181d;font-weight:600">{{ li.desc }}</div><div style="flex:1;text-align:center;color:#6b7280">x{{ li.qty }}</div><div style="flex:1;text-align:right;color:#16181d;font-weight:700">{{ li.amount }}</div>
+                  <span onClick="{{ li.onRemove }}" style="cursor:pointer;color:#d81f2a">&times;</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;gap:10px">
+            <input value="{{ draftDesc }}" onChange="{{ setDraftDesc }}" placeholder="Item / Service" autocomplete="off" style="flex:2;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;color:#16181d;background:#fff" />
+            <input value="{{ draftQty }}" onChange="{{ setDraftQty }}" type="number" min="1" placeholder="Qty" autocomplete="off" style="flex:1;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;color:#16181d;background:#fff" />
+            <input value="{{ draftPrice }}" onChange="{{ setDraftPrice }}" type="number" placeholder="Price" autocomplete="off" style="flex:1;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;color:#16181d;background:#fff" />
+          </div>
+          <div onClick="{{ addLineItem }}" style="font-size:12px;color:#d81f2a;font-weight:600;cursor:pointer">+ Add line item</div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #f1f1f3;display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <div style="display:flex;justify-content:space-between;width:220px;font-size:12.5px;color:#6b7280"><span>Subtotal</span><span>{{ newSubtotal }}</span></div>
+          <div style="display:flex;justify-content:space-between;width:220px;font-size:12.5px;color:#6b7280"><span>Tax (8%)</span><span>{{ newTax }}</span></div>
+          <div style="display:flex;justify-content:space-between;width:220px;font-size:15px;font-weight:800"><span>Total</span><span>{{ newTotal }}</span></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:18px">
+          <button onClick="{{ closeNew }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveNewInvoice }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Create Invoice</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ viewOpen }}" hint-placeholder-val="{{ false }}">
+    <helmet><style>
+      @media print {
+        [data-el="print-modal-overlay"]{position:static !important;background:none !important;display:block !important;padding:0 !important}
+        [data-el="view-card"]{position:static !important;width:100% !important;max-width:100% !important;max-height:none !important;overflow:visible !important;box-shadow:none !important;border-radius:0 !important}
+      }
+    </style></helmet>
+    <div data-el="print-modal-overlay" style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div data-el="view-card" style="background:#fff;border-radius:16px;width:520px;max-height:85vh;overflow-y:auto;box-sizing:border-box;max-width:92vw">
+        <div id="print-area" style="padding:32px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+            <img src="uploads/pasted-1790307921068-0.png" style="width:56px;height:56px;object-fit:contain;flex-shrink:0" />
+            <div style="min-width:0">
+              <div style="font-size:17px;font-weight:800;white-space:nowrap">CAR DOC</div>
+              <div style="font-size:11.5px;color:#6b7280;white-space:nowrap">Dikwella 81200 &middot; 071 369 4923</div>
+            </div>
+            <div style="margin-left:auto;text-align:right;flex-shrink:0">
+              <div style="font-size:13px;font-weight:700;white-space:nowrap">{{ activeInvoice.id }}</div>
+              <div style="font-size:11.5px;color:#6b7280;white-space:nowrap">{{ activeInvoice.date }}</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:18px;font-size:12.5px">
+            <div><div style="color:#8a8f98;margin-bottom:2px">Billed to</div><div style="font-weight:700">{{ activeInvoice.customer }}</div><div style="color:#6b7280">{{ activeInvoice.vehicle }}</div></div>
+            <div style="text-align:right"><span style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:{{ activeInvoice.statusBg }};color:{{ activeInvoice.statusColor }}">{{ activeInvoice.status }}</span></div>
+          </div>
+          <div style="border:1px solid #ececef;border-radius:10px;overflow:hidden;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="display:grid;grid-template-columns:2fr 0.6fr 1fr 1fr;padding:9px 12px;background:#f7f7f8;font-size:11px;font-weight:700;color:#8a8f98">
+              <div>Description</div><div>Qty</div><div>Price</div><div>Amount</div>
+            </div>
+            <sc-for list="{{ activeInvoice.items }}" as="li" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:2fr 0.6fr 1fr 1fr;padding:9px 12px;font-size:12.5px;border-top:1px solid #f5f5f6">
+                <div>{{ li.desc }}</div><div>{{ li.qty }}</div><div style="white-space:nowrap">{{ li.price }}</div><div style="white-space:nowrap">{{ li.amount }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;font-size:13px">
+            <div style="display:flex;justify-content:space-between;width:200px"><span style="color:#6b7280">Subtotal</span><span>{{ activeInvoice.subtotal }}</span></div>
+            <div style="display:flex;justify-content:space-between;width:200px"><span style="color:#6b7280">Tax</span><span>{{ activeInvoice.tax }}</span></div>
+            <div style="display:flex;justify-content:space-between;width:200px;font-weight:800;font-size:15px;border-top:1px solid #ececef;padding-top:6px;margin-top:4px"><span>Total</span><span>{{ activeInvoice.total }}</span></div>
+          </div>
+          <div style="margin-top:22px;font-size:11px;color:#9ca0a8;text-align:center">Thank you for choosing Car Doc &middot; Dikwella 81200 &middot; 071 369 4923</div>
+        </div>
+        <div style="display:flex;gap:10px;padding:0 32px 26px 32px">
+          <button onClick="{{ closeView }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Close</button>
+          <button onClick="{{ printInvoice }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Print / Download PDF</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAMES = ['K. Perera','S. Fernando','N. Silva','A. Rathnayake','M. Jayasuriya','D. Wickramasinghe','R. Gunasekara','T. Dissanayake'];
+const VEHICLES = ['Toyota Aqua - CAR-1234','Suzuki Alto - CAB-5678','Bajaj Three-wheeler - WP-9021','Honda Vezel - CAA-3345','Tata Dimo Van - PB-1120'];
+const STATUSES = [
+  { s: 'Paid', bg: '#dcfce7', c: '#15803d' },
+  { s: 'Unpaid', bg: '#fee2e2', c: '#b91c1c' },
+  { s: 'Partial', bg: '#fef3c7', c: '#b45309' }
+];
+function money(n) { return 'LKR ' + n.toLocaleString(undefined, { minimumFractionDigits: 2 }); }
+function makeInvoices(n) {
+  const arr = [];
+  arr.__unused = true;
+  for (let i = 0; i < n; i++) {
+    const st = STATUSES[i % STATUSES.length];
+    const items = [
+      { desc: 'Full Service', qty: 1, price: money(12000), amount: money(12000) },
+      { desc: 'Engine Oil (4L)', qty: 1, price: money(6500), amount: money(6500) },
+      { desc: 'Labour', qty: 1, price: money(3500), amount: money(3500) }
+    ];
+    const subtotal = 22000, tax = 1760, total = subtotal + tax;
+    arr.push({
+      id: 'INV-' + (1042 + i), customer: NAMES[i % NAMES.length], vehicle: VEHICLES[i % VEHICLES.length],
+      date: `Sep ${18 + (i % 7)}, 2026`, total: money(total + i * 800), status: st.s, statusBg: st.bg, statusColor: st.c,
+      items, subtotal: money(subtotal), tax: money(tax)
+    });
+  }
+  return arr;
+}
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', filter: 'all', visible: 8, newOpen: false, viewOpen: false, activeIdx: 0,
+    all: makeInvoices(30), nextNum: 1072,
+    newCustomer: '', newVehicle: '', newItems: [], draftDesc: '', draftQty: '1', draftPrice: ''
+  };
+  componentDidMount() {
+    setTimeout(() => this.setState({ loading: false }), 500);
+    this.consumeDraftIfAny();
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.draft && this.props.draft !== prevProps.draft) this.consumeDraftIfAny();
+  }
+  consumeDraftIfAny = () => {
+    if (!this.props.draft) return;
+    const items = (this.props.draft.items || []).map(it => ({ desc: it.desc, qty: it.qty, price: it.price }));
+    this.setState({ newOpen: true, newCustomer: this.props.draft.customer || '', newVehicle: this.props.draft.vehicle || '', newItems: items });
+    (this.props.onDraftConsumed || function () {})();
+  };
+  setQuery = (e) => this.setState({ query: e.target.value, visible: 8 });
+  setFilter = (f) => this.setState({ filter: f, visible: 8 });
+  openNew = () => this.setState({ newOpen: true, newCustomer: '', newVehicle: '', newItems: [], draftDesc: '', draftQty: '1', draftPrice: '' });
+  closeNew = () => this.setState({ newOpen: false });
+  setNewCustomer = (e) => this.setState({ newCustomer: e.target.value });
+  setNewVehicle = (e) => this.setState({ newVehicle: e.target.value });
+  setDraftDesc = (e) => this.setState({ draftDesc: e.target.value });
+  setDraftQty = (e) => this.setState({ draftQty: e.target.value });
+  setDraftPrice = (e) => this.setState({ draftPrice: e.target.value });
+  addLineItem = () => {
+    if (!this.state.draftDesc) return;
+    const qty = parseInt(this.state.draftQty, 10) || 1;
+    const price = parseFloat(this.state.draftPrice) || 0;
+    this.setState({ newItems: [...this.state.newItems, { desc: this.state.draftDesc, qty, price }], draftDesc: '', draftQty: '1', draftPrice: '' });
+  };
+  removeLineItem = (idx) => this.setState({ newItems: this.state.newItems.filter((_, i) => i !== idx) });
+  saveNewInvoice = () => {
+    const subtotal = this.state.newItems.reduce((s, it) => s + it.qty * it.price, 0);
+    const tax = Math.round(subtotal * 0.08);
+    const total = subtotal + tax;
+    const inv = {
+      id: 'INV-' + this.state.nextNum, customer: this.state.newCustomer || 'Walk-in Customer', vehicle: this.state.newVehicle || 'Unspecified',
+      date: 'Sep 25, 2026', total: money(total), status: 'Unpaid', statusBg: '#fee2e2', statusColor: '#b91c1c',
+      items: this.state.newItems.map(it => ({ desc: it.desc, qty: it.qty, price: money(it.price), amount: money(it.qty * it.price) })),
+      subtotal: money(subtotal), tax: money(tax)
+    };
+    this.setState({ all: [inv, ...this.state.all], newOpen: false, nextNum: this.state.nextNum + 1 });
+  };
+  openView = (idx) => this.setState({ viewOpen: true, activeIdx: idx });
+  closeView = () => this.setState({ viewOpen: false });
+  printInvoice = () => window.print();
+  quickPrint = (idx) => this.setState({ viewOpen: true, activeIdx: idx }, () => setTimeout(() => window.print(), 300));
+
+  renderVals() {
+    const filtered = this.state.all.filter(inv =>
+      (this.state.filter === 'all' || inv.status === this.state.filter) &&
+      (inv.customer.toLowerCase().includes(this.state.query.toLowerCase()) || inv.id.toLowerCase().includes(this.state.query.toLowerCase()))
+    );
+    const items = filtered.slice(0, this.state.visible).map((inv, i) => ({ ...inv, onView: () => this.openView(this.state.all.indexOf(inv)), onPrint: () => this.quickPrint(this.state.all.indexOf(inv)) }));
+    const newSubtotal = this.state.newItems.reduce((s, it) => s + it.qty * it.price, 0);
+    const newTax = Math.round(newSubtotal * 0.08);
+    const newItemsDisplay = this.state.newItems.map((it, idx) => ({ desc: it.desc, qty: it.qty, amount: money(it.qty * it.price), onRemove: () => this.removeLineItem(idx) }));
+    return {
+      loading: this.state.loading, skelRows: [1, 2, 3, 4, 5, 6],
+      query: this.state.query, setQuery: this.setQuery,
+      filters: ['all', ...STATUSES.map(s => s.s)].map(f => {
+        const active = this.state.filter === f;
+        return { label: f === 'all' ? 'All' : f, bg: active ? '#111114' : '#fff', color: active ? '#fff' : '#374151', border: active ? '#111114' : '#e5e7eb', onClick: () => this.setFilter(f) };
+      }),
+      items, hasMore: items.length < filtered.length,
+      newOpen: this.state.newOpen, openNew: this.openNew, closeNew: this.closeNew,
+      newCustomer: this.state.newCustomer, setNewCustomer: this.setNewCustomer,
+      newVehicle: this.state.newVehicle, setNewVehicle: this.setNewVehicle,
+      newItems: newItemsDisplay, hasNewItems: newItemsDisplay.length > 0, draftDesc: this.state.draftDesc, setDraftDesc: this.setDraftDesc,
+      draftQty: this.state.draftQty, setDraftQty: this.setDraftQty, draftPrice: this.state.draftPrice, setDraftPrice: this.setDraftPrice,
+      addLineItem: this.addLineItem, saveNewInvoice: this.saveNewInvoice,
+      newSubtotal: money(newSubtotal), newTax: money(newTax), newTotal: money(newSubtotal + newTax),
+      viewOpen: this.state.viewOpen, closeView: this.closeView, printInvoice: this.printInvoice,
+      activeInvoice: this.state.all[this.state.activeIdx] || {}
+    };
+  }
+}
+</script>
+</body>
+</html>

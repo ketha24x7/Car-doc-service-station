@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:1000px){[data-el="rpt-grid2"]{grid-template-columns:1fr !important}[data-el="rpt-tbl"]{min-width:640px}[data-el="rpt-scroll"]{overflow-x:auto}}
+    @media (max-width:700px){[data-el="rpt-grid4"]{grid-template-columns:repeat(2,1fr) !important}}
+    @media print{[data-el="rpt-controls"]{display:none !important}}
+  </style></helmet>
+
+  <div data-el="rpt-controls" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+        <div onClick="{{ t.onClick }}" style="cursor:pointer;padding:8px 15px;border-radius:999px;font-size:12.5px;font-weight:700;background:{{ t.bg }};color:{{ t.color }};border:1px solid {{ t.border }}">{{ t.label }}</div>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;position:relative">
+      <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="4">
+        <div onClick="{{ r.onClick }}" style="cursor:pointer;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;background:{{ r.bg }};color:{{ r.color }};border:1px solid {{ r.border }};white-space:nowrap">{{ r.label }}</div>
+      </sc-for>
+      <sc-if value="{{ customPopupOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeCustomPopup }}" style="position:fixed;inset:0;z-index:29"></div>
+        <div style="position:absolute;top:calc(100% + 8px);right:110px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,0.15);z-index:30;width:260px">
+          <div style="font-size:12.5px;font-weight:700;margin-bottom:10px">Custom Date Range</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+            <div>
+              <label style="font-size:11px;color:#8a8f98;font-weight:600">From</label>
+              <input type="date" value="{{ customFrom }}" onChange="{{ setCustomFrom }}" style="width:100%;box-sizing:border-box;margin-top:3px;padding:8px 10px;border-radius:8px;border:1px solid #e5e7eb;font-size:12.5px" />
+            </div>
+            <div>
+              <label style="font-size:11px;color:#8a8f98;font-weight:600">To</label>
+              <input type="date" value="{{ customTo }}" onChange="{{ setCustomTo }}" style="width:100%;box-sizing:border-box;margin-top:3px;padding:8px 10px;border-radius:8px;border:1px solid #e5e7eb;font-size:12.5px" />
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ closeCustomPopup }}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:12px;cursor:pointer">Cancel</button>
+            <button onClick="{{ applyCustomRange }}" style="flex:1;padding:8px;border-radius:8px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Apply</button>
+          </div>
+        </div>
+      </sc-if>
+      <button onClick="{{ printReport }}" style="display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a1 1 0 01-1-1v-6a1 1 0 011-1h18a1 1 0 011 1v6a1 1 0 01-1 1h-2M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        Print
+      </button>
+    </div>
+  </div>
+
+  <div id="print-area">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <img src="uploads/pasted-1790307921068-0.png" style="width:38px;height:38px;object-fit:contain" />
+      <div style="min-width:0"><div style="font-size:16px;font-weight:800;white-space:nowrap">CAR DOC &mdash; {{ activeTabLabel }} Report</div><div style="font-size:12px;color:#8a8f98;white-space:nowrap;margin-top:3px">{{ rangeLabel }} &middot; Generated {{ today }}</div></div>
+    </div>
+
+    <sc-if value="{{ tab === 'revenue' }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div data-el="rpt-grid4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Total Revenue</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ rev.total }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Avg Ticket Size</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ rev.avgTicket }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">MoM Growth</div><div style="font-size:21px;font-weight:800;margin-top:6px;color:#16a34a">{{ rev.growth }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Invoices Issued</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ rev.invoiceCount }}</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:16px">Monthly Revenue Trend</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:170px;padding:0 6px">
+          <sc-for list="{{ rev.trend }}" as="b" hint-placeholder-count="6">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+              <div style="width:100%;max-width:30px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#e0212b,#a8161f);height:{{ b.pct }}%"></div>
+              <div style="font-size:10.5px;color:#8a8f98;font-weight:600">{{ b.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">Revenue by Service Category</div>
+        <div data-el="rpt-scroll" style="overflow-x:auto"><div data-el="rpt-tbl">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:8px 4px;font-size:11px;font-weight:700;color:#8a8f98;text-transform:uppercase;border-bottom:1px solid #f1f1f3"><div>Service / Product</div><div>Jobs</div><div>Revenue</div><div>% of Total</div></div>
+          <sc-for list="{{ rev.byService }}" as="s" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:10px 4px;font-size:13px;border-bottom:1px solid #f5f5f6"><div style="font-weight:600">{{ s.name }}</div><div>{{ s.count }}</div><div style="font-weight:700">{{ s.revenue }}</div><div>{{ s.share }}%</div></div>
+          </sc-for>
+        </div></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ tab === 'jobs' }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div data-el="rpt-grid4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Jobs Completed</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ jobs.completed }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">In Progress</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ jobs.inProgress }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Avg Turnaround</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ jobs.avgTurnaround }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Cancelled</div><div style="font-size:21px;font-weight:800;margin-top:6px;color:#b91c1c">{{ jobs.cancelled }}</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">Daily Job Volume</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:150px;padding:0 6px">
+          <sc-for list="{{ jobs.daily }}" as="b" hint-placeholder-count="7">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+              <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:#7c3aed;height:{{ b.pct }}%"></div>
+              <div style="font-size:10.5px;color:#8a8f98;font-weight:600">{{ b.day }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">Technician Performance</div>
+        <div data-el="rpt-scroll" style="overflow-x:auto"><div data-el="rpt-tbl">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:8px 4px;font-size:11px;font-weight:700;color:#8a8f98;text-transform:uppercase;border-bottom:1px solid #f1f1f3"><div>Technician</div><div>Jobs Done</div><div>Avg Time</div><div>Rework Rate</div></div>
+          <sc-for list="{{ jobs.byTech }}" as="t" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:10px 4px;font-size:13px;border-bottom:1px solid #f5f5f6"><div style="font-weight:600">{{ t.name }}</div><div>{{ t.jobs }}</div><div>{{ t.avgTime }}</div><div>{{ t.rework }}%</div></div>
+          </sc-for>
+        </div></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ tab === 'customers' }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div data-el="rpt-grid4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Total Customers</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ cust.total }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">New This Period</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ cust.new }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Retention Rate</div><div style="font-size:21px;font-weight:800;margin-top:6px;color:#16a34a">{{ cust.retention }}%</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Avg Visits / Customer</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ cust.avgVisits }}</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">New vs Repeat Customers (by month)</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:160px;padding:0 6px">
+          <sc-for list="{{ cust.trend }}" as="b" hint-placeholder-count="6">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+              <div style="width:100%;max-width:32px;display:flex;flex-direction:column;height:100%;justify-content:flex-end;border-radius:6px 6px 2px 2px;overflow:hidden">
+                <div style="width:100%;background:#d81f2a;height:{{ b.repeatPct }}%"></div>
+                <div style="width:100%;background:#f2b705;height:{{ b.newPct }}%"></div>
+              </div>
+              <div style="font-size:10.5px;color:#8a8f98;font-weight:600">{{ b.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;font-size:11.5px;color:#6b7280">
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#d81f2a"></span>Repeat</div>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#f2b705"></span>New</div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">Top Customers by Spend</div>
+        <div data-el="rpt-scroll" style="overflow-x:auto"><div data-el="rpt-tbl">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:8px 4px;font-size:11px;font-weight:700;color:#8a8f98;text-transform:uppercase;border-bottom:1px solid #f1f1f3"><div>Customer</div><div>Visits</div><div>Total Spend</div></div>
+          <sc-for list="{{ cust.top }}" as="c" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:10px 4px;font-size:13px;border-bottom:1px solid #f5f5f6"><div style="font-weight:600">{{ c.name }}</div><div>{{ c.visits }}</div><div style="font-weight:700">{{ c.spend }}</div></div>
+          </sc-for>
+        </div></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ tab === 'inventory' }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div data-el="rpt-grid4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Stock Valuation</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ inv.valuation }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">SKUs Tracked</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ inv.skuCount }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Low Stock Items</div><div style="font-size:21px;font-weight:800;margin-top:6px;color:#b91c1c">{{ inv.lowCount }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Items Consumed</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ inv.consumed }}</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">Stock Level by Category</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ inv.byCategory }}" as="c" hint-placeholder-count="5">
+            <div>
+              <div style="display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-bottom:8px"><span style="font-weight:600;color:#374151;white-space:nowrap">{{ c.name }}</span><span style="color:#8a8f98;white-space:nowrap">{{ c.units }} units</span></div>
+              <div style="height:8px;border-radius:6px;background:#f1f1f3;overflow:hidden"><div style="height:100%;width:{{ c.pct }}%;background:#2563eb;border-radius:6px"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">Low Stock &mdash; Needs Reorder</div>
+        <div data-el="rpt-scroll" style="overflow-x:auto"><div data-el="rpt-tbl">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:8px 4px;font-size:11px;font-weight:700;color:#8a8f98;text-transform:uppercase;border-bottom:1px solid #f1f1f3"><div>Product</div><div>Stock</div><div>Reorder At</div><div>Supplier</div></div>
+          <sc-for list="{{ inv.lowStock }}" as="i" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:10px 4px;font-size:13px;border-bottom:1px solid #f5f5f6"><div style="font-weight:600">{{ i.name }}</div><div style="color:#b91c1c;font-weight:700">{{ i.stock }}</div><div>{{ i.reorder }}</div><div style="color:#6b7280">{{ i.supplier }}</div></div>
+          </sc-for>
+        </div></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ tab === 'expenses' }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div data-el="rpt-controls" style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button onClick="{{ openAddExpense }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap">+ Add Expense</button>
+      </div>
+      <div data-el="rpt-grid4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Total Income</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ exp.income }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Total Expenses</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ exp.total }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Net Profit</div><div style="font-size:21px;font-weight:800;margin-top:6px;color:#16a34a">{{ exp.profit }}</div></div>
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:16px"><div style="font-size:12px;color:#8a8f98;font-weight:600">Profit Margin</div><div style="font-size:21px;font-weight:800;margin-top:6px">{{ exp.margin }}%</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">Expense Breakdown by Category</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ exp.byCategory }}" as="c" hint-placeholder-count="5">
+            <div>
+              <div style="display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-bottom:8px"><span style="font-weight:600;color:#374151;white-space:nowrap">{{ c.name }}</span><span style="color:#8a8f98;white-space:nowrap">{{ c.amount }}</span></div>
+              <div style="height:8px;border-radius:6px;background:#f1f1f3;overflow:hidden"><div style="height:100%;width:{{ c.pct }}%;background:#d81f2a;border-radius:6px"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">Recent Expense Entries</div>
+        <div data-el="rpt-scroll" style="overflow-x:auto"><div data-el="rpt-tbl">
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr 1.4fr;padding:8px 4px;font-size:11px;font-weight:700;color:#8a8f98;text-transform:uppercase;border-bottom:1px solid #f1f1f3"><div>Date</div><div>Category</div><div>Amount</div><div>Note</div></div>
+          <sc-for list="{{ exp.entries }}" as="e" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr 1.4fr;padding:10px 4px;font-size:13px;border-bottom:1px solid #f5f5f6">
+              <div style="color:#6b7280">{{ e.date }}</div><div style="font-weight:600">{{ e.category }}</div><div style="font-weight:700">{{ e.amountLabel }}</div><div style="color:#6b7280">{{ e.note }}</div>
+            </div>
+          </sc-for>
+        </div></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ addExpenseOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+        <div style="background:#fff;border-radius:16px;padding:24px;width:400px;max-width:92vw;box-sizing:border-box">
+          <div style="font-size:16px;font-weight:800;margin-bottom:16px">Add Expense</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <input type="date" value="{{ expDate }}" onChange="{{ setExpDate }}" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <select value="{{ expCategory }}" onChange="{{ setExpCategory }}" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px">
+              <option>Parts &amp; Materials</option><option>Staff Salaries</option><option>Utilities &amp; Rent</option><option>Marketing</option><option>Miscellaneous</option>
+            </select>
+            <input type="number" value="{{ expAmount }}" onChange="{{ setExpAmount }}" placeholder="Amount (LKR)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+            <input value="{{ expNote }}" onChange="{{ setExpNote }}" placeholder="Note (optional)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div style="display:flex;gap:10px;margin-top:20px">
+            <button onClick="{{ closeAddExpense }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+            <button onClick="{{ saveExpense }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save Expense</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="margin-top:20px;font-size:11px;color:#9ca0a8;text-align:center">CAR DOC &middot; Dikwella 81200 &middot; 071 369 4923 &middot; Confidential management report</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    tab: 'revenue', range: 'day', customPopupOpen: false, customFrom: '', customTo: '', appliedFrom: '', appliedTo: '',
+    addExpenseOpen: false, expDate: '', expCategory: 'Parts & Materials', expAmount: '', expNote: '',
+    expenses: [
+      { id: 1, date: 'Sep 22, 2026', category: 'Parts & Materials', amount: 320000, note: 'Brake pads restock' },
+      { id: 2, date: 'Sep 15, 2026', category: 'Staff Salaries', amount: 980000, note: 'Monthly payroll' },
+      { id: 3, date: 'Sep 10, 2026', category: 'Utilities & Rent', amount: 380000, note: 'Rent + electricity' },
+      { id: 4, date: 'Sep 5, 2026', category: 'Marketing', amount: 150000, note: 'Facebook ads' },
+      { id: 5, date: 'Sep 2, 2026', category: 'Miscellaneous', amount: 140000, note: 'Misc supplies' }
+    ]
+  };
+  setTab = (t) => this.setState({ tab: t, customPopupOpen: false });
+  setRange = (r) => {
+    if (r === 'custom') { this.setState({ customPopupOpen: true }); return; }
+    this.setState({ range: r, customPopupOpen: false });
+  };
+  closeCustomPopup = () => this.setState({ customPopupOpen: false });
+  setCustomFrom = (e) => this.setState({ customFrom: e.target.value });
+  setCustomTo = (e) => this.setState({ customTo: e.target.value });
+  applyCustomRange = () => this.setState({ range: 'custom', appliedFrom: this.state.customFrom, appliedTo: this.state.customTo, customPopupOpen: false });
+  printReport = () => window.print();
+
+  openAddExpense = () => this.setState({ addExpenseOpen: true, expDate: '2026-09-25', expCategory: 'Parts & Materials', expAmount: '', expNote: '' });
+  closeAddExpense = () => this.setState({ addExpenseOpen: false });
+  setExpDate = (e) => this.setState({ expDate: e.target.value });
+  setExpCategory = (e) => this.setState({ expCategory: e.target.value });
+  setExpAmount = (e) => this.setState({ expAmount: e.target.value });
+  setExpNote = (e) => this.setState({ expNote: e.target.value });
+  saveExpense = () => {
+    const amount = parseInt(this.state.expAmount, 10) || 0;
+    if (amount <= 0) return;
+    const entry = { id: Date.now(), date: this.state.expDate || '2026-09-25', category: this.state.expCategory, amount, note: this.state.expNote };
+    this.setState({ expenses: [entry, ...this.state.expenses], addExpenseOpen: false });
+  };
+
+  renderVals() {
+    const tabDefs = [
+      { id: 'revenue', label: 'Revenue' }, { id: 'jobs', label: 'Jobs' }, { id: 'customers', label: 'Customers' },
+      { id: 'inventory', label: 'Inventory' }, { id: 'expenses', label: 'Expenses' }
+    ];
+    const tabs = tabDefs.map(t => {
+      const active = this.state.tab === t.id;
+      return { label: t.label, bg: active ? '#111114' : '#fff', color: active ? '#fff' : '#374151', border: active ? '#111114' : '#e5e7eb', onClick: () => this.setTab(t.id) };
+    });
+    const rangeLabels = { day: 'Day', week: 'Week', month: 'Month', custom: 'Custom' };
+    const ranges = ['day', 'week', 'month', 'custom'].map(r => {
+      const active = this.state.range === r;
+      return { label: rangeLabels[r], bg: active ? '#fef3c7' : '#fff', color: active ? '#92400e' : '#374151', border: active ? '#f2b705' : '#e5e7eb', onClick: () => this.setRange(r) };
+    });
+    const rangeLabel = this.state.range === 'custom' && this.state.appliedFrom && this.state.appliedTo
+      ? this.state.appliedFrom + ' to ' + this.state.appliedTo
+      : rangeLabels[this.state.range] + 'ly view';
+
+    return {
+      tab: this.state.tab, tabs, activeTabLabel: tabDefs.find(t => t.id === this.state.tab).label,
+      ranges, rangeLabel,
+      customPopupOpen: this.state.customPopupOpen, closeCustomPopup: this.closeCustomPopup,
+      customFrom: this.state.customFrom, setCustomFrom: this.setCustomFrom,
+      customTo: this.state.customTo, setCustomTo: this.setCustomTo, applyCustomRange: this.applyCustomRange,
+      today: 'Sep 25, 2026', printReport: this.printReport,
+      addExpenseOpen: this.state.addExpenseOpen, openAddExpense: this.openAddExpense, closeAddExpense: this.closeAddExpense,
+      expDate: this.state.expDate, setExpDate: this.setExpDate,
+      expCategory: this.state.expCategory, setExpCategory: this.setExpCategory,
+      expAmount: this.state.expAmount, setExpAmount: this.setExpAmount,
+      expNote: this.state.expNote, setExpNote: this.setExpNote, saveExpense: this.saveExpense,
+
+      rev: {
+        total: 'LKR 6,240,000', avgTicket: 'LKR 18,400', growth: '+12.4%', invoiceCount: 339,
+        trend: [{ label: 'Apr', pct: 55 }, { label: 'May', pct: 62 }, { label: 'Jun', pct: 58 }, { label: 'Jul', pct: 74 }, { label: 'Aug', pct: 88 }, { label: 'Sep', pct: 96 }],
+        byService: [
+          { name: 'Full Service', count: 62, revenue: 'LKR 1,860,000', share: 30 },
+          { name: 'Oil Change', count: 104, revenue: 'LKR 1,040,000', share: 17 },
+          { name: 'Brake Service', count: 48, revenue: 'LKR 864,000', share: 14 },
+          { name: 'Wheel Alignment & Balancing', count: 58, revenue: 'LKR 580,000', share: 9 },
+          { name: 'AC Repair', count: 29, revenue: 'LKR 522,000', share: 8 }
+        ]
+      },
+
+      jobs: {
+        completed: 148, inProgress: 22, avgTurnaround: '3.4 hrs', cancelled: 6,
+        daily: [{ day: 'Mon', pct: 62 }, { day: 'Tue', pct: 70 }, { day: 'Wed', pct: 55 }, { day: 'Thu', pct: 82 }, { day: 'Fri', pct: 95 }, { day: 'Sat', pct: 100 }, { day: 'Sun', pct: 38 }],
+        byTech: [
+          { name: 'P. Kumara', jobs: 42, avgTime: '3.1 hrs', rework: 2 },
+          { name: 'J. Silva', jobs: 38, avgTime: '3.6 hrs', rework: 4 },
+          { name: 'A. Nimal', jobs: 31, avgTime: '3.3 hrs', rework: 3 },
+          { name: 'R. Bandu', jobs: 27, avgTime: '4.0 hrs', rework: 5 }
+        ]
+      },
+
+      cust: {
+        total: 312, new: 52, retention: 64, avgVisits: 4.2,
+        trend: [{ label: 'Apr', repeatPct: 40, newPct: 20 }, { label: 'May', repeatPct: 44, newPct: 22 }, { label: 'Jun', repeatPct: 42, newPct: 18 }, { label: 'Jul', repeatPct: 50, newPct: 24 }, { label: 'Aug', repeatPct: 55, newPct: 26 }, { label: 'Sep', repeatPct: 58, newPct: 28 }],
+        top: [
+          { name: 'N. Silva', visits: 14, spend: 'LKR 284,000' },
+          { name: 'K. Perera', visits: 11, spend: 'LKR 226,000' },
+          { name: 'M. Jayasuriya', visits: 10, spend: 'LKR 198,000' },
+          { name: 'D. Wickramasinghe', visits: 9, spend: 'LKR 176,000' },
+          { name: 'R. Gunasekara', visits: 8, spend: 'LKR 154,000' }
+        ]
+      },
+
+      inv: {
+        valuation: 'LKR 1,420,000', skuCount: 28, lowCount: 4, consumed: 612,
+        byCategory: [
+          { name: 'Lubricants', units: 210, pct: 78 }, { name: 'Filters', units: 165, pct: 61 },
+          { name: 'Brake Parts', units: 90, pct: 40 }, { name: 'Batteries', units: 34, pct: 22 }, { name: 'Tyres', units: 58, pct: 34 }
+        ],
+        lowStock: [
+          { name: 'Brake Pad Set', stock: '3 (Low)', reorder: 10, supplier: 'Lanka Auto Parts' },
+          { name: 'Car Battery 12V 45Ah', stock: '2 (Low)', reorder: 10, supplier: 'Southern Battery House' },
+          { name: 'Air Filter', stock: '5 (Low)', reorder: 10, supplier: 'Lanka Auto Parts' },
+          { name: 'Coolant 1L', stock: '4 (Low)', reorder: 10, supplier: 'Colombo Lubricants Ltd' }
+        ]
+      },
+
+      exp: (() => {
+        const income = 6240000;
+        const totalExp = this.state.expenses.reduce((s, e) => s + e.amount, 0);
+        const byCat = {};
+        this.state.expenses.forEach(e => { byCat[e.category] = (byCat[e.category] || 0) + e.amount; });
+        const byCategory = Object.keys(byCat).map(name => ({ name, amount: 'LKR ' + byCat[name].toLocaleString(), pct: Math.round((byCat[name] / totalExp) * 100) }));
+        return {
+          income: 'LKR ' + income.toLocaleString(), total: 'LKR ' + totalExp.toLocaleString(),
+          profit: 'LKR ' + (income - totalExp).toLocaleString(), margin: Math.round(((income - totalExp) / income) * 100),
+          byCategory,
+          entries: this.state.expenses.map(e => ({ ...e, amountLabel: 'LKR ' + e.amount.toLocaleString() }))
+        };
+      })()
+    };
+  }
+}
+</script>
+</body>
+</html>

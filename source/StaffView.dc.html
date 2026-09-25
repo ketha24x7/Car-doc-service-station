@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div>
+  <helmet><style>
+    @media (max-width:700px){[data-el="perm-grid"]{grid-template-columns:repeat(2,1fr) !important}}
+  </style></helmet>
+
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <div onClick="{{ onTabEmployees }}" style="cursor:pointer;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;background:{{ tabEmployeesBg }};color:{{ tabEmployeesColor }}">Employees</div>
+    <div onClick="{{ onTabPermissions }}" style="cursor:pointer;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;background:{{ tabPermissionsBg }};color:{{ tabPermissionsColor }}">Permissions</div>
+    <div onClick="{{ onTabAttendance }}" style="cursor:pointer;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;background:{{ tabAttendanceBg }};color:{{ tabAttendanceColor }}">Attendance</div>
+  </div>
+
+  <sc-if value="{{ tab === 'employees' }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+    <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search staff..." style="padding:9px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;width:280px" />
+    <button onClick="{{ openNew }}" style="padding:9px 16px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add Staff</button>
+  </div>
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <sc-for list="{{ skel }}" as="s" hint-placeholder-count="4"><div class="skel" style="height:70px;border-radius:14px;margin-bottom:10px"></div></sc-for>
+  </sc-if>
+  <sc-if value="{{ !loading }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ items }}" as="st" hint-placeholder-count="5">
+      <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:10px;background:#111114;color:#f2b705;display:flex;align-items:center;justify-content:center;font-weight:800">{{ st.initial }}</div>
+        <div style="flex:1">
+          <div style="font-size:13.5px;font-weight:700">{{ st.name }}</div>
+          <div style="font-size:11.5px;color:#8a8f98">{{ st.role }} &middot; {{ st.phone }}</div>
+          <sc-if value="{{ st.hasSalary }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#9ca0a8;margin-top:1px">{{ st.salaryLabel }} / month</div></sc-if>
+        </div>
+        <span onClick="{{ st.onToggleStatus }}" title="Click to toggle" style="cursor:pointer;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:{{ st.statusBg }};color:{{ st.statusColor }}">{{ st.status }}</span>
+        <span onClick="{{ st.onEdit }}" title="Edit" style="cursor:pointer;color:#6b7280">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        </span>
+        <span onClick="{{ st.onDelete }}" title="Delete" style="cursor:pointer;color:#d81f2a">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        </span>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ tab === 'permissions' }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ items }}" as="st" hint-placeholder-count="5">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:14px 18px">
+          <div onClick="{{ st.togglePermExpand }}" style="cursor:pointer;display:flex;align-items:center;gap:12px">
+            <div style="width:32px;height:32px;border-radius:9px;background:#111114;color:#f2b705;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px">{{ st.initial }}</div>
+            <div style="flex:1"><div style="font-size:13.5px;font-weight:700">{{ st.name }}</div><div style="font-size:11px;color:#8a8f98">{{ st.role }}</div></div>
+            <span style="color:#9ca0a8;font-size:12px">{{ st.permExpandArrow }}</span>
+          </div>
+          <sc-if value="{{ st.permExpanded }}" hint-placeholder-val="{{ false }}">
+          <div data-el="perm-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #f1f1f3">
+            <sc-for list="{{ st.perms }}" as="p" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;justify-content:space-between;background:#f7f7f8;border-radius:9px;padding:8px 10px">
+                <span style="font-size:12px;color:#374151;font-weight:600">{{ p.label }}</span>
+                <div onClick="{{ p.toggle }}" style="width:32px;height:18px;border-radius:999px;background:{{ p.bg }};position:relative;cursor:pointer">
+                  <div style="position:absolute;top:2px;left:{{ p.left }};width:14px;height:14px;border-radius:50%;background:#fff"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tab === 'attendance' }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ items }}" as="st" hint-placeholder-count="5">
+        <div style="background:#fff;border:1px solid #ececef;border-radius:14px;padding:14px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:32px;height:32px;border-radius:9px;background:#111114;color:#f2b705;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px">{{ st.initial }}</div>
+              <div><div style="font-size:13.5px;font-weight:700">{{ st.name }}</div><div style="font-size:11px;color:#8a8f98">{{ st.role }}</div></div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <span onClick="{{ st.onMarkPresent }}" style="cursor:pointer;font-size:11.5px;font-weight:700;color:#15803d;background:#dcfce7;border-radius:999px;padding:5px 10px">Present</span>
+              <span onClick="{{ st.onMarkAbsent }}" style="cursor:pointer;font-size:11.5px;font-weight:700;color:#b91c1c;background:#fee2e2;border-radius:999px;padding:5px 10px">Absent</span>
+              <span onClick="{{ st.onMarkLeave }}" style="cursor:pointer;font-size:11.5px;font-weight:700;color:#b45309;background:#fef3c7;border-radius:999px;padding:5px 10px">Leave</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;overflow-x:auto">
+            <sc-for list="{{ st.attendance }}" as="a" hint-placeholder-count="7">
+              <div onClick="{{ a.onCycle }}" style="cursor:{{ a.cursor }};flex-shrink:0;text-align:center;background:#f7f7f8;border-radius:9px;padding:8px 12px;min-width:70px;border:{{ a.border }}">
+                <div style="font-size:11px;color:#8a8f98;margin-bottom:4px">{{ a.date }}{{ a.todayTag }}</div>
+                <span style="font-size:11px;font-weight:700;background:{{ a.bg }};color:{{ a.color }};border-radius:999px;padding:3px 8px;white-space:nowrap">{{ a.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:60">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:15px;font-weight:800;margin-bottom:6px">Remove staff member?</div>
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px">This will remove <strong>{{ confirmName }}</strong>. This action cannot be undone.</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelDelete }}" style="flex:1;padding:10px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmDelete }}" style="flex:1;padding:10px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,17,20,0.5);display:flex;align-items:center;justify-content:center;z-index:50">
+      <div style="background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;box-sizing:border-box">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">{{ modalTitle }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input value="{{ formName }}" onChange="{{ setFormName }}" placeholder="Full name" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ formRole }}" onChange="{{ setFormRole }}" placeholder="Role (e.g. Technician)" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <input value="{{ formPhone }}" onChange="{{ setFormPhone }}" placeholder="Phone" style="padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Monthly salary (LKR, optional)</label>
+            <input value="{{ formSalary }}" onChange="{{ setFormSalary }}" type="number" placeholder="e.g. 45000" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px" />
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:#6b7280;font-weight:600">Status</label>
+            <select value="{{ formStatus }}" onChange="{{ setFormStatus }}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px 12px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;background:#fff">
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onClick="{{ closeModal }}" style="flex:1;padding:11px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveModal }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:#d81f2a;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STAFF = [
+  { id: 0, name: 'R. Fonseka', role: 'Service Advisor', phone: '077 112 2334', status: 'Active', salary: 55000 },
+  { id: 1, name: 'S. Herath', role: 'Service Advisor', phone: '071 556 7788', status: 'Active', salary: 52000 },
+  { id: 2, name: 'P. Kumara', role: 'Technician', phone: '076 334 5567', status: 'Active', salary: 48000 },
+  { id: 3, name: 'J. Silva', role: 'Technician', phone: '070 998 1123', status: 'Active', salary: 46000 },
+  { id: 4, name: 'A. Nimal', role: 'Technician', phone: '075 223 4499', status: 'On Leave', salary: null },
+  { id: 5, name: 'D. Fernando', role: 'Accountant', phone: '072 667 8890', status: 'Active', salary: 60000 }
+];
+const PERM_KEYS = ['Dashboard', 'Appointments', 'Job Cards', 'Invoices', 'Inventory', 'Suppliers', 'Reports', 'Staff'];
+function moneyS(n) { return 'LKR ' + (n || 0).toLocaleString(); }
+function seedAttendance(seed) {
+  const statuses = ['Present', 'Present', 'Present', 'Present', 'Present', 'Leave', 'Absent'];
+  const out = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const st = statuses[(seed + i) % statuses.length];
+    out.push({ date: d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }), status: st, isToday: i === 0 });
+  }
+  return out;
+}
+const CYCLE = { Present: 'Absent', Absent: 'Leave', Leave: 'Present' };
+const ATT_COLORS = { Present: ['#dcfce7', '#15803d'], Absent: ['#fee2e2', '#b91c1c'], Leave: ['#fef3c7', '#b45309'] };
+
+class Component extends DCLogic {
+  state = {
+    loading: true, query: '', tab: 'employees', perms: {}, permExpandedId: null, attendanceOverrides: {}, all: STAFF, modalOpen: false, editIdx: null,
+    formName: '', formRole: '', formPhone: '', formSalary: '', formStatus: 'Active', confirmOpen: false, confirmId: null
+  };
+  componentDidMount() { setTimeout(() => this.setState({ loading: false }), 500); }
+  setQuery = (e) => this.setState({ query: e.target.value });
+  setTab = (t) => this.setState({ tab: t });
+  togglePermExpand = (i) => this.setState({ permExpandedId: this.state.permExpandedId === i ? null : i });
+  togglePerm = (i, key) => {
+    const perms = { ...this.state.perms };
+    const cur = perms[i] || {};
+    cur[key] = !(cur[key] ?? true);
+    perms[i] = cur;
+    this.setState({ perms });
+  };
+  markToday = (i, status) => {
+    const overrides = { ...this.state.attendanceOverrides };
+    overrides[i] = status;
+    this.setState({ attendanceOverrides: overrides });
+  };
+  openNew = () => this.setState({ modalOpen: true, editIdx: null, formName: '', formRole: '', formPhone: '', formSalary: '', formStatus: 'Active' });
+  openEdit = (id) => {
+    const s = this.state.all.find(x => x.id === id);
+    this.setState({ modalOpen: true, editIdx: id, formName: s.name, formRole: s.role, formPhone: s.phone, formSalary: s.salary ? String(s.salary) : '', formStatus: s.status });
+  };
+  closeModal = () => this.setState({ modalOpen: false });
+  setFormName = (e) => this.setState({ formName: e.target.value });
+  setFormRole = (e) => this.setState({ formRole: e.target.value });
+  setFormPhone = (e) => this.setState({ formPhone: e.target.value });
+  setFormSalary = (e) => this.setState({ formSalary: e.target.value });
+  setFormStatus = (e) => this.setState({ formStatus: e.target.value });
+  toggleStatus = (id) => this.setState({ all: this.state.all.map(s => s.id === id ? { ...s, status: s.status === 'Active' ? 'On Leave' : 'Active' } : s) });
+  saveModal = () => {
+    const salary = this.state.formSalary ? parseFloat(this.state.formSalary) || null : null;
+    if (this.state.editIdx === null) {
+      const nextId = Math.max(-1, ...this.state.all.map(s => s.id)) + 1;
+      this.setState({ all: [...this.state.all, { id: nextId, name: this.state.formName, role: this.state.formRole, phone: this.state.formPhone, salary, status: this.state.formStatus }], modalOpen: false });
+    } else {
+      this.setState({ all: this.state.all.map(s => s.id === this.state.editIdx ? { ...s, name: this.state.formName, role: this.state.formRole, phone: this.state.formPhone, salary, status: this.state.formStatus } : s), modalOpen: false });
+    }
+  };
+  deleteStaff = (id) => this.setState({ confirmOpen: true, confirmId: id });
+  cancelDelete = () => this.setState({ confirmOpen: false, confirmId: null });
+  confirmDelete = () => this.setState({ all: this.state.all.filter(s => s.id !== this.state.confirmId), confirmOpen: false, confirmId: null });
+
+  renderVals() {
+    const filtered = this.state.all.map(s => ({ ...s, idx: s.id })).filter(s => s.name.toLowerCase().includes(this.state.query.toLowerCase()));
+    const items = filtered.map(s => {
+      const on = s.status === 'Active';
+      const permState = this.state.perms[s.idx] || {};
+      const attendance = seedAttendance(s.idx);
+      if (this.state.attendanceOverrides[s.idx]) attendance[6] = { ...attendance[6], status: this.state.attendanceOverrides[s.idx] };
+      return {
+        initial: s.name[0], name: s.name, role: s.role, phone: s.phone, status: s.status,
+        hasSalary: !!s.salary, salaryLabel: moneyS(s.salary),
+        statusBg: on ? '#dcfce7' : '#fef3c7', statusColor: on ? '#15803d' : '#b45309',
+        onEdit: () => this.openEdit(s.id), onDelete: () => this.deleteStaff(s.id), onToggleStatus: () => this.toggleStatus(s.id),
+        permExpanded: this.state.permExpandedId === s.idx, permExpandArrow: this.state.permExpandedId === s.idx ? '\u25B2' : '\u25BC', togglePermExpand: () => this.togglePermExpand(s.idx),
+        onMarkPresent: () => this.markToday(s.idx, 'Present'), onMarkAbsent: () => this.markToday(s.idx, 'Absent'), onMarkLeave: () => this.markToday(s.idx, 'Leave'),
+        attendance: attendance.map(a => {
+          const c = ATT_COLORS[a.status] || ['#f1f1f3', '#374151'];
+          return {
+            ...a, bg: c[0], color: c[1],
+            todayTag: a.isToday ? ' \u00b7 Today' : '',
+            border: a.isToday ? '1.5px solid #d81f2a' : '1.5px solid transparent',
+            cursor: a.isToday ? 'pointer' : 'default',
+            onCycle: a.isToday ? () => this.markToday(s.idx, CYCLE[a.status] || 'Present') : undefined
+          };
+        }),
+        perms: PERM_KEYS.map(k => {
+          const on = permState[k] ?? (k !== 'Staff' && k !== 'Suppliers');
+          return { label: k, bg: on ? '#16a34a' : '#d1d5db', left: on ? '16px' : '2px', toggle: () => this.togglePerm(s.idx, k) };
+        })
+      };
+    });
+    return {
+      loading: this.state.loading, skel: [1, 2, 3, 4], query: this.state.query, setQuery: this.setQuery, items,
+      tab: this.state.tab,
+      onTabEmployees: () => this.setTab('employees'), onTabPermissions: () => this.setTab('permissions'), onTabAttendance: () => this.setTab('attendance'),
+      tabEmployeesBg: this.state.tab === 'employees' ? '#111114' : '#fff', tabEmployeesColor: this.state.tab === 'employees' ? '#fff' : '#374151',
+      tabPermissionsBg: this.state.tab === 'permissions' ? '#111114' : '#fff', tabPermissionsColor: this.state.tab === 'permissions' ? '#fff' : '#374151',
+      tabAttendanceBg: this.state.tab === 'attendance' ? '#111114' : '#fff', tabAttendanceColor: this.state.tab === 'attendance' ? '#fff' : '#374151',
+      openNew: this.openNew, modalOpen: this.state.modalOpen, closeModal: this.closeModal, saveModal: this.saveModal,
+      modalTitle: this.state.editIdx === null ? 'Add Staff' : 'Edit Staff',
+      formName: this.state.formName, setFormName: this.setFormName,
+      formRole: this.state.formRole, setFormRole: this.setFormRole,
+      formPhone: this.state.formPhone, setFormPhone: this.setFormPhone,
+      formSalary: this.state.formSalary, setFormSalary: this.setFormSalary,
+      formStatus: this.state.formStatus, setFormStatus: this.setFormStatus,
+      confirmOpen: this.state.confirmOpen, cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+      confirmName: (this.state.all.find(s => s.id === this.state.confirmId) || {}).name || ''
+    };
+  }
+}
+</script>
+</body>
+</html>
