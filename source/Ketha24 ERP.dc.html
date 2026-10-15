@@ -39,9 +39,9 @@
 <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 20% 20%, #1a1a1e 0%, #0b0b0d 60%);font-family:'Inter',sans-serif">
   <div style="width:380px;background:#fff;border-radius:20px;padding:36px 32px;box-shadow:0 30px 80px rgba(0,0,0,0.5)">
     <div style="display:flex;justify-content:center;margin-bottom:18px">
-      <img src="assets/car-doc-logo.png" alt="Car Doc logo" style="width:96px;height:96px;object-fit:contain" />
+      <img src="assets/ketha24.png" alt="Ketha24 logo" style="width:96px;height:96px;object-fit:contain" />
     </div>
-    <div style="text-align:center;font-size:22px;font-weight:800;color:#16181d;letter-spacing:-0.02em">CAR DOC</div>
+    <div style="text-align:center;font-size:22px;font-weight:800;color:#16181d;letter-spacing:-0.02em">KETHA24</div>
     <div style="text-align:center;font-size:13px;color:#8a8f98;margin-top:2px;margin-bottom:26px">Service Station Management &mdash; Dikwella</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
       <div onClick="{{ setLoginRole }}" data-role="admin" style="cursor:pointer;border:2px solid {{ adminBorder }};background:{{ adminBg }};border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px">
@@ -66,8 +66,8 @@
 
   <div data-el="sidebar" style="width:236px;flex-shrink:0;background:#111114;display:flex;flex-direction:column;padding:20px 14px;box-sizing:border-box;transition:width 0.15s">
     <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 22px 8px">
-      <img src="assets/car-doc-logo.png" style="width:40px;height:40px;object-fit:contain" />
-      <div data-el="brand-text"><div style="color:#fff;font-weight:800;font-size:15px;letter-spacing:-0.01em">CAR DOC</div><div style="color:#8a8f98;font-size:10.5px">Dikwella Service Center</div></div>
+      <img src="assets/ketha24.png" style="width:40px;height:40px;object-fit:contain" />
+      <div data-el="brand-text"><div style="color:#fff;font-weight:800;font-size:15px;letter-spacing:-0.01em">KETHA24</div><div style="color:#8a8f98;font-size:10.5px">Dikwella Service Center</div></div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:2px">
@@ -506,7 +506,7 @@ class Component extends DCLogic {
       navServicesBg: navBg('services'), navServicesColor: navColor('services'), goServices: this.goServices,
       loggedIn: this.state.loggedIn,
       loginRole: this.state.loginRole,
-      demoUser: this.state.loginRole === 'admin' ? 'admin@cardoc.lk' : 'advisor@cardoc.lk',
+      demoUser: this.state.loginRole === 'admin' ? 'admin@ketha24.lk' : 'advisor@ketha24.lk',
       setLoginRole: this.setLoginRole,
       setLoginRoleStaff: this.setLoginRoleStaff,
       login: this.login,

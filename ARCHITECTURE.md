@@ -1,4 +1,4 @@
-# Architecture — CAR DOC ERP (design prototype)
+# Architecture — KETHA24 ERP (design prototype)
 
 This describes how the prototype is wired, so it can be mapped to a real front-end +
 backend architecture. It is NOT a recommendation to keep this structure — it's a map of
@@ -7,7 +7,7 @@ what exists so nothing gets lost in translation.
 ## File / component map
 
 ```
-Car Doc ERP.dc.html        Root shell: login screen, sidebar nav, topbar (search, bell/
+Ketha24 ERP.dc.html        Root shell: login screen, sidebar nav, topbar (search, bell/
                             notifications, export), footer, view router, ALL shared state.
                             This is the only file holding cross-screen state today.
   ├─ DashboardView.dc.html     KPI cards + 7-day revenue chart. No props (reads nothing
@@ -46,7 +46,7 @@ Car Doc ERP.dc.html        Root shell: login screen, sidebar nav, topbar (search
                                real aggregates per the date range control.
 ```
 
-## Root state shape (Car Doc ERP.dc.html `state`)
+## Root state shape (Ketha24 ERP.dc.html `state`)
 ```
 loggedIn, loginRole                  — fake auth
 view                                 — current route/screen key

@@ -1,7 +1,7 @@
-# CAR DOC — Service Center ERP — Handoff Notes
+# KETHA24 — Service Center ERP — Handoff Notes
 
 ## What this is
-A simple ERP for CAR DOC, a car service center in Dikwella, Sri Lanka. Covers appointments,
+A simple ERP for KETHA24, a car service center in Dikwella, Sri Lanka. Covers appointments,
 job cards, invoicing, inventory/parts, suppliers, expenses, service catalog, staff/permissions,
 customer & vehicle records, and dashboard/reporting.
 
@@ -26,11 +26,11 @@ whatever component library/design tokens the target codebase already has. Where 
 says "seed data" or "mock," that specific data is illustrative only (not real business data).
 
 ## Brand
-- Name: CAR DOC (Dikwella Service Center)
+- Name: KETHA24 (Dikwella Service Center)
 - Phone: 071 369 4923, Address: Dikwella 81200
 - Currency: LKR (Sri Lankan Rupee), formatted as `LKR 1,234` (no decimals in list views;
   invoices use `LKR 1,234.00`)
-- Logo: `source/assets/car-doc-logo.png` (circular red/black/gold badge, background removed)
+- Logo: `source/assets/ketha24.png` (Ketha24 logo)
 - Primary color: `#d81f2a` (red) — buttons, active nav, highlights
 - Dark surface (sidebar): `#111114`
 - Accent gold: `#f2b705` (used on dark surfaces — icons, avatar chips)
@@ -90,7 +90,7 @@ that should map directly to a permissions table (user_id, module, allowed boolea
 7. **Invoices**: created manually or via the Job Card → Create Invoice flow. Invoice line
    items = one row per service + one row per added product, editable and extendable (can
    add more line items in the invoice modal). Statuses: Paid / Unpaid / Partial. Invoice
-   print/PDF should show the CAR DOC letterhead (logo, name, address, phone) — this exists
+   print/PDF should show the KETHA24 letterhead (logo, name, address, phone) — this exists
    as a print-styled view; recreate with a real PDF generator (e.g. Puppeteer/wkhtmltopdf)
    server-side rather than relying on browser print in production.
 

@@ -1,6 +1,6 @@
-# CAR DOC — Service Center ERP (Design Prototype)
+# KETHA24 — Service Center ERP (Design Prototype)
 
-ERP design for **CAR DOC**, a car service center in Dikwella, Sri Lanka. Covers
+ERP design for **KETHA24**, a car service center in Dikwella, Sri Lanka. Covers
 appointments, job cards, invoicing, inventory/parts, suppliers, expenses, service
 catalog, staff & permissions, customer/vehicle records, and dashboard/reporting.
 

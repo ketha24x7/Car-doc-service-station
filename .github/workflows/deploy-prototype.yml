@@ -27,7 +27,7 @@ jobs:
         run: |
           mkdir -p dist
           cp -r source/. dist/
-          cp "dist/Car Doc ERP.dc.html" dist/index.html
+          cp "dist/Ketha24 ERP.dc.html" dist/index.html
 
       - uses: actions/configure-pages@v5
 
